@@ -89,7 +89,9 @@ $$MFI_{batter} = w_1 \cdot S(O\text{-Swing}\%) + w_2 \cdot S(Z\text{-Whiff}\%) +
 
 ## 🖥️ 大聯盟戰情室系統功能亮點
 
-1. **現代 Glassmorphism 深色戰情 UI**：
+1. **Google Material You (Material Design 3 - MD3) 現代戰情 UI**：
+   - 全面導入 Material You (MD3) 規範：經典紫色種子調色盤（Seed Color `#6750A4`）、淺色 Tonal Surface 色彩層級、大圓角容器（24px ~ 36px）與藥丸型態狀態標籤（Pill Badges）。
+   - 注入有機氛圍背景微動效（Layered Organic Blur Shapes）、多層陰影階度（Elevation Levels 1~3）與流暢觸覺微動效反饋（Active Scale 95）。
    - 頂部隊伍健康指數（THI）、高風險疲勞人數、平均領先時差（12.4 天）、預防介入成功率四大戰情 KPI 卡片。
    - 6 位全隊主力球員（含先發外野手、內野手、捕手、先發投手）即時燈號矩陣。
 2. **時序對比圖表（Plotly Subplots）**：
