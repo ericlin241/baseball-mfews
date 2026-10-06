@@ -505,144 +505,204 @@ st.markdown("""
         100% { box-shadow: 0 0 0 0 rgba(232, 56, 61, 0); }
     }
 
-        /* 球員字卡基礎造型 (預設未選取：乾淨白底、無淺藍背景、無深藍外框) */
-    .player-card {
+    /* =========================================================================
+       球員字卡核心樣式 (字卡本身即為按鈕，徹底移除白色姓名按鈕與多餘覆蓋層)
+       ========================================================================= */
+    .stButton {
+        width: 100% !important;
+        margin-bottom: 8px !important;
+    }
+
+    .stButton > button {
+        width: 100% !important;
+        min-height: 104px !important;
+        border-radius: var(--theme-shape-md) !important;
+        padding: 12px 6px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: center !important;
+        align-items: center !important;
+        text-align: center !important;
+        box-sizing: border-box !important;
+        cursor: pointer !important;
+        user-select: none !important;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        outline: none !important;
+    }
+
+    /* 未選取狀態 (乾淨純白底色、無淺藍背景、無深藍外框) */
+    .stButton > button[data-testid="stBaseButton-secondary"],
+    .stButton > button[kind="secondary"] {
         background: #FFFFFF !important;
+        background-color: #FFFFFF !important;
         border: 1.5px solid #CBD5E1 !important;
-        border-radius: var(--theme-shape-md);
-        padding: 13px 8px;
-        text-align: center;
-        box-shadow: 0 1px 3px rgba(10, 44, 81, 0.05);
-        transition: all 0.2s ease;
-        min-height: 110px;
-        box-sizing: border-box;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        cursor: pointer;
-        user-select: none;
-        margin-bottom: 6px;
-        position: relative;
+        box-shadow: 0 1px 4px rgba(10, 44, 81, 0.06) !important;
     }
 
-    .player-name {
-        font-size: 15px;
-        font-weight: 800;
-        color: #0A2C51;
-        margin-bottom: 3px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        transition: color 0.2s ease;
+    .stButton > button[data-testid="stBaseButton-secondary"]:hover,
+    .stButton > button[kind="secondary"]:hover {
+        transform: translateY(-2px) !important;
+        border-color: #0A2C51 !important;
+        box-shadow: 0 4px 12px rgba(10, 44, 81, 0.12) !important;
     }
 
-    .player-pos {
-        font-size: 11px;
-        color: #475569;
-        margin-bottom: 6px;
-        white-space: nowrap;
-        transition: color 0.2s ease;
-    }
-
-    /* 點選切換選取狀態 (Active：背景直接變深藍、球員名字與守備名稱反白純白) */
-    .player-card.player-card-active {
+    /* 已選取狀態 (背景直接變深藍 #0A2C51、姓名與守備文字全面反白純白) */
+    .stButton > button[data-testid="stBaseButton-primary"],
+    .stButton > button[kind="primary"] {
         background: #0A2C51 !important;
+        background-color: #0A2C51 !important;
         border: 2px solid #0A2C51 !important;
         box-shadow: 0 6px 18px rgba(10, 44, 81, 0.28) !important;
-        transform: translateY(-2px);
+        transform: translateY(-2px) !important;
     }
 
-    .player-card.player-card-active .player-name {
+    .stButton > button[data-testid="stBaseButton-primary"]:hover,
+    .stButton > button[kind="primary"]:hover {
+        background: #0D3866 !important;
+        background-color: #0D3866 !important;
+        border-color: #0D3866 !important;
+    }
+
+    /* 按鈕聚焦狀態清除藍色光暈 */
+    .stButton > button:focus:not(:focus-visible),
+    .stButton > button:focus {
+        outline: none !important;
+        box-shadow: inherit !important;
+    }
+
+    /* 按鈕內部內容容器 */
+    .stButton > button div[data-testid="stMarkdownContainer"] {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: 100% !important;
+    }
+
+    .stButton > button div[data-testid="stMarkdownContainer"] > p {
+        margin: 0 !important;
+        padding: 0 !important;
+        text-align: center !important;
+        width: 100% !important;
+    }
+
+    /* 第 1 行：球員姓名 */
+    .stButton > button div[data-testid="stMarkdownContainer"] > p:nth-child(1),
+    .stButton > button div[data-testid="stMarkdownContainer"] > p:nth-child(1) strong {
+        font-size: 15px !important;
+        font-weight: 800 !important;
+        line-height: 1.3 !important;
+        margin-bottom: 2px !important;
+        letter-spacing: -0.01em !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+    }
+
+    /* 未選取：姓名深藍色 */
+    .stButton > button[data-testid="stBaseButton-secondary"] div[data-testid="stMarkdownContainer"] > p:nth-child(1),
+    .stButton > button[data-testid="stBaseButton-secondary"] div[data-testid="stMarkdownContainer"] > p:nth-child(1) strong,
+    .stButton > button[kind="secondary"] div[data-testid="stMarkdownContainer"] > p:nth-child(1),
+    .stButton > button[kind="secondary"] div[data-testid="stMarkdownContainer"] > p:nth-child(1) strong {
+        color: #0A2C51 !important;
+    }
+
+    /* 選取：姓名純白反白 */
+    .stButton > button[data-testid="stBaseButton-primary"] div[data-testid="stMarkdownContainer"] > p:nth-child(1),
+    .stButton > button[data-testid="stBaseButton-primary"] div[data-testid="stMarkdownContainer"] > p:nth-child(1) strong,
+    .stButton > button[kind="primary"] div[data-testid="stMarkdownContainer"] > p:nth-child(1),
+    .stButton > button[kind="primary"] div[data-testid="stMarkdownContainer"] > p:nth-child(1) strong {
         color: #FFFFFF !important;
     }
 
-    .player-card.player-card-active .player-pos {
+    /* 第 2 行：守備位置 */
+    .stButton > button div[data-testid="stMarkdownContainer"] > p:nth-child(2) {
+        font-size: 11px !important;
+        font-weight: 600 !important;
+        line-height: 1.2 !important;
+        margin-bottom: 6px !important;
+        white-space: nowrap !important;
+    }
+
+    /* 未選取：守備位置深灰藍 */
+    .stButton > button[data-testid="stBaseButton-secondary"] div[data-testid="stMarkdownContainer"] > p:nth-child(2),
+    .stButton > button[kind="secondary"] div[data-testid="stMarkdownContainer"] > p:nth-child(2) {
+        color: #64748B !important;
+    }
+
+    /* 選取：守備位置柔和白反白 */
+    .stButton > button[data-testid="stBaseButton-primary"] div[data-testid="stMarkdownContainer"] > p:nth-child(2),
+    .stButton > button[kind="primary"] div[data-testid="stMarkdownContainer"] > p:nth-child(2) {
         color: #E2ECF8 !important;
     }
 
-    /* 懸停效果 (未選取時微浮升) */
-    .player-card:not(.player-card-active):hover {
-        transform: translateY(-3px);
-        box-shadow: 0 4px 12px rgba(10, 44, 81, 0.12);
-        border-color: #0A2C51 !important;
+    /* 第 3 行：微疲勞狀態燈號膠囊 */
+    .stButton > button div[data-testid="stMarkdownContainer"] > p:nth-child(3) {
+        font-size: 10.5px !important;
+        font-weight: 600 !important;
+        line-height: 1.2 !important;
+        padding: 2.5px 8px !important;
+        border-radius: 9999px !important;
+        display: inline-block !important;
+        width: auto !important;
+        margin: 0 auto !important;
     }
 
-    /* 徹底移除字卡下方按鈕：將按鈕容器抽離排版，以透明層 100% 覆蓋整張字卡 */
-    div[data-testid="stColumn"]:has(.player-card),
-    div[data-testid*="olumn"]:has(.player-card) {
-        position: relative !important;
+    /* 未選取狀態膠囊背景 */
+    .stButton > button[data-testid="stBaseButton-secondary"] div[data-testid="stMarkdownContainer"] > p:nth-child(3),
+    .stButton > button[kind="secondary"] div[data-testid="stMarkdownContainer"] > p:nth-child(3) {
+        background: #F1F5F9 !important;
+        color: #1E293B !important;
+        border: 1px solid #E2E8F0 !important;
     }
 
-    /* 隱藏並抽離包含按鈕的第二個 element-container，消除下方任何實體按鈕與多餘空白高度 */
-    div[data-testid="stColumn"]:has(.player-card) div[data-testid="element-container"]:has(.stButton),
-    div[data-testid="stColumn"]:has(.player-card) .element-container:has(.stButton),
-    div[data-testid*="olumn"]:has(.player-card) div[data-testid="element-container"]:has(.stButton),
-    div[data-testid*="olumn"]:has(.player-card) .element-container:has(.stButton) {
-        position: absolute !important;
-        top: 0 !important;
-        left: 0 !important;
-        right: 0 !important;
-        bottom: 0 !important;
-        width: 100% !important;
-        height: 100% !important;
-        min-height: 100% !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        z-index: 5 !important;
+    /* 選取狀態膠囊背景 (半透明白底、純白文字) */
+    .stButton > button[data-testid="stBaseButton-primary"] div[data-testid="stMarkdownContainer"] > p:nth-child(3),
+    .stButton > button[kind="primary"] div[data-testid="stMarkdownContainer"] > p:nth-child(3) {
+        background: rgba(255, 255, 255, 0.18) !important;
+        color: #FFFFFF !important;
+        border: 1px solid rgba(255, 255, 255, 0.3) !important;
     }
 
-    div[data-testid="stColumn"]:has(.player-card) .stButton,
-    div[data-testid*="olumn"]:has(.player-card) .stButton {
-        position: absolute !important;
-        top: 0 !important;
-        left: 0 !important;
-        width: 100% !important;
-        height: 100% !important;
-        margin: 0 !important;
-        padding: 0 !important;
-    }
-
-    div[data-testid="stColumn"]:has(.player-card) .stButton > button,
-    div[data-testid*="olumn"]:has(.player-card) .stButton > button {
-        position: absolute !important;
-        top: 0 !important;
-        left: 0 !important;
-        width: 100% !important;
-        height: 100% !important;
-        min-height: 100% !important;
-        opacity: 0 !important;
-        background: transparent !important;
+    /* 處方箋下載按鈕專屬樣式保護 */
+    .stDownloadButton > button {
+        background: #0A2C51 !important;
+        color: #FFFFFF !important;
         border: none !important;
-        cursor: pointer !important;
-        padding: 0 !important;
-        margin: 0 !important;
-        font-size: 0 !important;
-        line-height: 0 !important;
-        color: transparent !important;
-        box-shadow: none !important;
-        overflow: hidden !important;
+        border-radius: 8px !important;
+        font-weight: 700 !important;
+        font-size: 14.5px !important;
+        min-height: 44px !important;
+        padding: 10px 20px !important;
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: center !important;
     }
-
-    div[data-testid="stColumn"]:has(.player-card) .stButton > button *,
-    div[data-testid*="olumn"]:has(.player-card) .stButton > button * {
-        display: none !important;
+    .stDownloadButton > button:hover {
+        background: #0D3866 !important;
+        color: #FFFFFF !important;
     }
 
     /* 手機與平板專屬響應式排版優化 (Responsive Optimization) */
     @media (max-width: 1024px) and (min-width: 769px) {
         /* 平板版：球員卡每行 4 欄 */
-        div[data-testid="stHorizontalBlock"]:has(.player-card) {
+        div[data-testid="stHorizontalBlock"]:has(.stButton) {
             display: flex !important;
             flex-wrap: wrap !important;
             gap: 8px !important;
         }
-        div[data-testid="stHorizontalBlock"]:has(.player-card) > div[data-testid="stColumn"] {
+        div[data-testid="stHorizontalBlock"]:has(.stButton) > div[data-testid="column"],
+        div[data-testid="stHorizontalBlock"]:has(.stButton) > div[data-testid*="olumn"] {
             flex: 1 1 calc(25% - 8px) !important;
             min-width: calc(25% - 8px) !important;
             max-width: calc(25% - 8px) !important;
         }
-        div[data-testid="stHorizontalBlock"]:has(.theme-kpi-card) > div[data-testid="stColumn"] {
+        div[data-testid="stHorizontalBlock"]:has(.stButton) > div[data-testid*="olumn"]:not(:has(.stButton)) {
+            display: none !important;
+        }
+        div[data-testid="stHorizontalBlock"]:has(.theme-kpi-card) > div[data-testid="column"],
+        div[data-testid="stHorizontalBlock"]:has(.theme-kpi-card) > div[data-testid*="olumn"] {
             flex: 1 1 calc(50% - 10px) !important;
             min-width: calc(50% - 10px) !important;
             margin-bottom: 8px !important;
@@ -667,7 +727,8 @@ st.markdown("""
             flex-wrap: wrap !important;
             gap: 8px !important;
         }
-        div[data-testid="stHorizontalBlock"]:has(.theme-kpi-card) > div[data-testid="stColumn"] {
+        div[data-testid="stHorizontalBlock"]:has(.theme-kpi-card) > div[data-testid="column"],
+        div[data-testid="stHorizontalBlock"]:has(.theme-kpi-card) > div[data-testid*="olumn"] {
             flex: 1 1 calc(50% - 8px) !important;
             min-width: calc(50% - 8px) !important;
             max-width: calc(50% - 8px) !important;
@@ -681,27 +742,36 @@ st.markdown("""
         }
         
         /* 手機版：球員卡自動折行，每行 2 欄 */
-        div[data-testid="stHorizontalBlock"]:has(.player-card) {
+        div[data-testid="stHorizontalBlock"]:has(.stButton) {
             display: flex !important;
             flex-wrap: wrap !important;
             gap: 6px !important;
         }
-        div[data-testid="stHorizontalBlock"]:has(.player-card) > div[data-testid="stColumn"] {
+        div[data-testid="stHorizontalBlock"]:has(.stButton) > div[data-testid="column"],
+        div[data-testid="stHorizontalBlock"]:has(.stButton) > div[data-testid*="olumn"] {
             flex: 1 1 calc(50% - 6px) !important;
             min-width: calc(50% - 6px) !important;
             max-width: calc(50% - 6px) !important;
         }
-        .player-card {
+        div[data-testid="stHorizontalBlock"]:has(.stButton) > div[data-testid*="olumn"]:not(:has(.stButton)) {
+            display: none !important;
+        }
+        .stButton > button {
             min-height: 94px !important;
             padding: 10px 4px !important;
             margin-bottom: 4px !important;
         }
-        .player-name {
+        .stButton > button div[data-testid="stMarkdownContainer"] > p:nth-child(1),
+        .stButton > button div[data-testid="stMarkdownContainer"] > p:nth-child(1) strong {
             font-size: 13.5px !important;
         }
-        .player-pos {
+        .stButton > button div[data-testid="stMarkdownContainer"] > p:nth-child(2) {
             font-size: 10px !important;
             margin-bottom: 4px !important;
+        }
+        .stButton > button div[data-testid="stMarkdownContainer"] > p:nth-child(3) {
+            font-size: 9.5px !important;
+            padding: 2px 6px !important;
         }
         
         /* 手機版：處方卡改為 1 欄排列 */
@@ -710,15 +780,16 @@ st.markdown("""
             flex-wrap: wrap !important;
             gap: 12px !important;
         }
-        div[data-testid="stHorizontalBlock"]:has(.theme-action-card) > div[data-testid="stColumn"] {
+        div[data-testid="stHorizontalBlock"]:has(.theme-action-card) > div[data-testid="column"],
+        div[data-testid="stHorizontalBlock"]:has(.theme-action-card) > div[data-testid*="olumn"] {
             flex: 1 1 100% !important;
             min-width: 100% !important;
         }
         
         /* 診斷表格平滑觸控滾動 */
         .diag-table th, .diag-table td {
-            padding: 8px 10px !important;
-            font-size: 12px !important;
+            padding: 8px 6px !important;
+            font-size: 11px !important;
         }
     }
 
@@ -1608,27 +1679,31 @@ for row_start in range(0, len(team_players), cols_per_row):
         p_df = all_players_data[p_name]
         curr_mfi = p_df["mfi"].iloc[-1]
         pos = p_df["pos"].iloc[0]
-        
-        # 依據動態閾值決定燈號
+        # 依據動態閾值決定燈號圖示與文字
         if curr_mfi >= threshold_red:
-            badge_html = render_theme_badge(f"🔴 高風險 ({curr_mfi:.1f})", "red")
+            badge_icon = "🔴"
+            badge_lbl = "高風險"
         elif curr_mfi >= threshold_yellow:
-            badge_html = render_theme_badge(f"🟡 觀察期 ({curr_mfi:.1f})", "yellow")
+            badge_icon = "🟡"
+            badge_lbl = "觀察期"
         else:
-            badge_html = render_theme_badge(f"🟢 正常 ({curr_mfi:.1f})", "green")
+            badge_icon = "🟢"
+            badge_lbl = "正常"
             
         is_active = (p_name == selected_player)
-        active_cls = "player-card-active" if is_active else ""
+        btn_type = "primary" if is_active else "secondary"
+        
+        # 字卡本身即為按鈕：包含姓名、守備位置與微疲勞指數燈號 (徹底移除多餘白色按鈕)
+        btn_label = f"**{p_name}**\n\n{pos}\n\n{badge_icon} {badge_lbl} ({curr_mfi:.1f})"
         
         with grid_cols[idx]:
-            card_html = f"""<div class="player-card {active_cls}">
-<div class="player-name">{p_name}</div>
-<div class="player-pos">{pos}</div>
-<div style="margin-top: 6px;">{badge_html}</div>
-</div>"""
-            st.markdown(card_html, unsafe_allow_html=True)
-            # 覆蓋整張卡片的透明按鈕，點選卡片直接切換球員
-            if st.button(p_name, key=f"btn_pcard_{p_name}", help=f"點選查看 {p_name} 之微疲勞分析"):
+            if st.button(
+                btn_label,
+                key=f"btn_pcard_{p_name}",
+                type=btn_type,
+                use_container_width=True,
+                help=f"點選切換查看 {p_name} 之微疲勞先行分析"
+            ):
                 st.session_state["selected_player"] = p_name
                 st.rerun()
 
@@ -2453,24 +2528,12 @@ st.markdown("""
     © NTUT IAE. All rights reserved.
 </div>
 """, unsafe_allow_html=True)
+
 </script>
 
     <!-- 載入 stlite mountable 執行腳本 -->
     <script src="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.58.0/build/stlite.js"></script>
     <script>
-            // 點選卡片直接切換球員 (雙重保障：轉發點擊至透明按鈕)
-      document.addEventListener('click', function(e) {
-        var card = e.target.closest('.player-card');
-        if (card) {
-          var col = card.closest('[data-testid*="olumn"]');
-          if (col) {
-            var btn = col.querySelector('.stButton button');
-            if (btn && e.target !== btn) {
-              btn.click();
-            }
-          }
-        }
-      });
       const rawCode = document.getElementById('app-code').textContent;
       stlite.mount(
         {
