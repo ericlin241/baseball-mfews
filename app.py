@@ -3,7 +3,8 @@
 賽季微疲勞先行指標預警系統 (Micro-Fatigue Early Warning System, MFEWS)
 2026 野革盃台灣棒球數據黑客松參賽專案
 架構：Streamlit + Plotly + Pandas + NumPy (可透過 stlite WebAssembly 在瀏覽器端純前端運行)
-視覺規範：Google Material You (Material Design 3 - MD3) 設計系統整合
+主視覺：藍白紅三色系 (Navy Blue, Crisp White, Crimson Red)
+版權所有：© NTUT IAE. All rights reserved.
 =============================================================================
 """
 
@@ -39,42 +40,38 @@ from plotly.subplots import make_subplots
 from datetime import datetime, timedelta
 
 # =============================================================================
-# 0. Material You (Material Design 3, MD3) 設計系統 Design Tokens 與渲染元件
+# 0. 藍白紅經典棒球視覺系統 Design Tokens (RB.png Palette: Navy, White, Crimson)
 # =============================================================================
-MD3_TOKENS = {
+THEME_TOKENS = {
     "colors": {
-        "primary": "#6750A4",
+        "primary": "#0A2C51",               # 經典深海軍藍 (Primary Navy Blue)
         "on_primary": "#FFFFFF",
-        "primary_container": "#EADDFF",
-        "on_primary_container": "#21005D",
-        "secondary": "#625B71",
+        "primary_container": "#E2ECF8",     # 柔和海軍藍容器
+        "on_primary_container": "#061D36",
+        "secondary": "#E8383D",             # 熱血棒球紅 (Secondary Crimson Red)
         "on_secondary": "#FFFFFF",
-        "secondary_container": "#E8DEF8",
-        "on_secondary_container": "#1D192B",
-        "tertiary": "#7D5260",
-        "on_tertiary": "#FFFFFF",
-        "tertiary_container": "#FFD8E4",
-        "on_tertiary_container": "#31111D",
-        "surface": "#FFFBFE",
-        "on_surface": "#1C1B1F",
-        "surface_variant": "#E7E0EC",
-        "on_surface_variant": "#49454F",
-        "surface_container": "#F3EDF7",
-        "surface_container_low": "#E7E0EC",
-        "surface_container_high": "#ECE6F0",
-        "surface_container_highest": "#E6E0E9",
-        "outline": "#79747E",
-        "outline_variant": "#CAC4D0",
+        "secondary_container": "#FDE8E9",   # 柔和紅色容器
+        "on_secondary_container": "#4B080A",
+        "accent_blue": "#1E5AA0",           # 科技活力藍
+        "surface": "#F8F9FA",               # 乾淨球場白底色 (Light Off-White)
+        "surface_container": "#FFFFFF",     # 內容卡片底色 (Crisp White)
+        "surface_container_low": "#F1F5F9", # 淺灰藍凹陷/輸入底色
+        "surface_container_high": "#E2E8F0",
+        "outline": "#CBD5E1",               # 輪廓邊框灰
+        "outline_variant": "#E2E8F0",
+        "on_surface": "#0F172A",            # 主文字 (Slate 900)
+        "on_surface_variant": "#475569",    # 次要文字 (Slate 600)
+        
         # 語意狀態色彩 (Semantic Status)
-        "success": "#1B6E3E",
-        "success_container": "#CEF2D3",
-        "on_success_container": "#00210E",
-        "warning": "#8C5000",
-        "warning_container": "#FFDCBB",
-        "on_warning_container": "#2D1600",
-        "danger": "#BA1A1A",
-        "danger_container": "#FFDAD6",
-        "on_danger_container": "#410002",
+        "success": "#059669",               # 綠燈正常
+        "success_container": "#D1FAE5",
+        "on_success_container": "#064E3B",
+        "warning": "#D97706",               # 黃燈觀察 (Amber)
+        "warning_container": "#FEF3C7",
+        "on_warning_container": "#78350F",
+        "danger": "#E8383D",                # 紅燈高風險 (RB.png 經典紅)
+        "danger_container": "#FDE8E9",
+        "on_danger_container": "#4B080A",
     },
     "radii": {
         "xs": "8px",
@@ -86,32 +83,28 @@ MD3_TOKENS = {
         "full": "9999px",
     },
     "elevation": {
-        "level1": "0px 1px 3px 1px rgba(0, 0, 0, 0.08), 0px 1px 2px 0px rgba(0, 0, 0, 0.12)",
-        "level2": "0px 2px 6px 2px rgba(103, 80, 164, 0.12), 0px 1px 2px 0px rgba(0, 0, 0, 0.08)",
-        "level3": "0px 4px 12px 3px rgba(103, 80, 164, 0.16), 0px 1px 3px 0px rgba(0, 0, 0, 0.10)",
-    },
-    "motion": {
-        "easing": "cubic-bezier(0.2, 0, 0, 1)",
-        "duration": "300ms",
+        "level1": "0px 1px 3px 0px rgba(10, 44, 81, 0.08), 0px 1px 2px 0px rgba(10, 44, 81, 0.05)",
+        "level2": "0px 4px 12px 0px rgba(10, 44, 81, 0.12), 0px 2px 4px 0px rgba(10, 44, 81, 0.06)",
+        "level3": "0px 8px 24px 0px rgba(10, 44, 81, 0.16), 0px 3px 6px 0px rgba(10, 44, 81, 0.08)",
     }
 }
 
-def render_md3_badge(text: str, variant: str = "tonal", extra_style: str = "") -> str:
-    """產生 Material You 藥丸型狀態標籤 (Pill Badge)"""
+def render_theme_badge(text: str, variant: str = "tonal", extra_style: str = "") -> str:
+    """產生藍白紅棒球風格藥丸型標籤 (Pill Badge)"""
     return f'<span class="badge badge-{variant}" style="{extra_style}">{text}</span>'
 
-def render_md3_kpi_card(label: str, value: str, unit: str, subtext: str, color: str = "#6750A4") -> str:
-    """產生 Material You 具備 Tonal Surface 與 Hover 微動效之 KPI 卡片"""
+def render_theme_kpi_card(label: str, value: str, unit: str, subtext: str, color: str = "#0A2C51") -> str:
+    """產生藍白紅高對比 KPI 戰情卡片"""
     return f"""
     <div class="kpi-card">
         <div class="kpi-label">{label}</div>
-        <div class="kpi-value" style="color: {color};">{value} <span style="font-size: 15px; color: #49454F; font-weight: 500;">{unit}</span></div>
+        <div class="kpi-value" style="color: {color};">{value} <span style="font-size: 15px; color: #475569; font-weight: 500;">{unit}</span></div>
         <div class="kpi-subtext">{subtext}</div>
     </div>
     """
 
-def render_md3_action_card(title: str, body: str, variant: str = "info") -> str:
-    """產生 Material You 運動科學與調度處方卡"""
+def render_theme_action_card(title: str, body: str, variant: str = "info") -> str:
+    """產生運動科學與調度處方卡"""
     variant_class = ""
     if variant == "warning":
         variant_class = "card-warning"
@@ -125,7 +118,7 @@ def render_md3_action_card(title: str, body: str, variant: str = "info") -> str:
     """
 
 # =============================================================================
-# 1. 頁面基礎設定與 Material You (MD3) 視覺主題 CSS 樣式注入
+# 1. 頁面基礎設定與全域 CSS (移除頂部白色橫條與三個點、修復滑桿跳動、套用藍白紅)
 # =============================================================================
 st.set_page_config(
     page_title="MFEWS | 賽季微疲勞先行指標預警系統",
@@ -138,76 +131,84 @@ st.set_page_config(
 if "selected_player" not in st.session_state:
     st.session_state["selected_player"] = "陳傑憲"
 
-# 注入 Material You (Material Design 3) 全域設計系統 CSS
+# 注入藍白紅全域視覺與 Streamlit 元件修復 CSS
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap');
 
     :root {
-        --md-sys-color-primary: #6750A4;
-        --md-sys-color-on-primary: #FFFFFF;
-        --md-sys-color-primary-container: #EADDFF;
-        --md-sys-color-on-primary-container: #21005D;
-        --md-sys-color-secondary: #625B71;
-        --md-sys-color-on-secondary: #FFFFFF;
-        --md-sys-color-secondary-container: #E8DEF8;
-        --md-sys-color-on-secondary-container: #1D192B;
-        --md-sys-color-tertiary: #7D5260;
-        --md-sys-color-on-tertiary: #FFFFFF;
-        --md-sys-color-tertiary-container: #FFD8E4;
-        --md-sys-color-on-tertiary-container: #31111D;
-        --md-sys-color-surface: #FFFBFE;
-        --md-sys-color-on-surface: #1C1B1F;
-        --md-sys-color-surface-variant: #E7E0EC;
-        --md-sys-color-on-surface-variant: #49454F;
-        --md-sys-color-surface-container: #F3EDF7;
-        --md-sys-color-surface-container-low: #E7E0EC;
-        --md-sys-color-surface-container-high: #ECE6F0;
-        --md-sys-color-surface-container-highest: #E6E0E9;
-        --md-sys-color-outline: #79747E;
-        --md-sys-color-outline-variant: #CAC4D0;
+        --theme-color-primary: #0A2C51;
+        --theme-color-on-primary: #FFFFFF;
+        --theme-color-primary-container: #E2ECF8;
+        --theme-color-on-primary-container: #061D36;
+        --theme-color-secondary: #E8383D;
+        --theme-color-on-secondary: #FFFFFF;
+        --theme-color-secondary-container: #FDE8E9;
+        --theme-color-on-secondary-container: #4B080A;
+        --theme-color-accent-blue: #1E5AA0;
+        --theme-color-surface: #F8F9FA;
+        --theme-color-surface-container: #FFFFFF;
+        --theme-color-surface-container-low: #F1F5F9;
+        --theme-color-surface-container-high: #E2E8F0;
+        --theme-color-outline: #CBD5E1;
+        --theme-color-outline-variant: #E2E8F0;
+        --theme-color-on-surface: #0F172A;
+        --theme-color-on-surface-variant: #475569;
 
         /* Semantic Status */
-        --md-sys-color-success: #1B6E3E;
-        --md-sys-color-success-container: #CEF2D3;
-        --md-sys-color-on-success-container: #00210E;
-        --md-sys-color-warning: #8C5000;
-        --md-sys-color-warning-container: #FFDCBB;
-        --md-sys-color-on-warning-container: #2D1600;
-        --md-sys-color-danger: #BA1A1A;
-        --md-sys-color-danger-container: #FFDAD6;
-        --md-sys-color-on-danger-container: #410002;
+        --theme-color-success: #059669;
+        --theme-color-success-container: #D1FAE5;
+        --theme-color-on-success-container: #064E3B;
+        --theme-color-warning: #D97706;
+        --theme-color-warning-container: #FEF3C7;
+        --theme-color-on-warning-container: #78350F;
+        --theme-color-danger: #E8383D;
+        --theme-color-danger-container: #FDE8E9;
+        --theme-color-on-danger-container: #4B080A;
 
         /* Shape Radii */
-        --md-sys-shape-corner-xs: 8px;
-        --md-sys-shape-corner-sm: 12px;
-        --md-sys-shape-corner-md: 16px;
-        --md-sys-shape-corner-lg: 24px;
-        --md-sys-shape-corner-xl: 28px;
-        --md-sys-shape-corner-xxl: 36px;
-        --md-sys-shape-corner-full: 9999px;
+        --theme-shape-xs: 8px;
+        --theme-shape-sm: 12px;
+        --theme-shape-md: 16px;
+        --theme-shape-lg: 24px;
+        --theme-shape-xl: 28px;
+        --theme-shape-xxl: 36px;
+        --theme-shape-full: 9999px;
 
         /* Elevation */
-        --md-sys-elevation-1: 0px 1px 3px 1px rgba(0, 0, 0, 0.08), 0px 1px 2px 0px rgba(0, 0, 0, 0.12);
-        --md-sys-elevation-2: 0px 2px 6px 2px rgba(103, 80, 164, 0.12), 0px 1px 2px 0px rgba(0, 0, 0, 0.08);
-        --md-sys-elevation-3: 0px 4px 12px 3px rgba(103, 80, 164, 0.16), 0px 1px 3px 0px rgba(0, 0, 0, 0.10);
-
-        /* Motion */
-        --md-sys-motion-easing: cubic-bezier(0.2, 0, 0, 1);
-        --md-sys-motion-duration: 300ms;
+        --theme-elevation-1: 0px 1px 3px 0px rgba(10, 44, 81, 0.08), 0px 1px 2px 0px rgba(10, 44, 81, 0.05);
+        --theme-elevation-2: 0px 4px 12px 0px rgba(10, 44, 81, 0.12), 0px 2px 4px 0px rgba(10, 44, 81, 0.06);
+        --theme-elevation-3: 0px 8px 24px 0px rgba(10, 44, 81, 0.16), 0px 3px 6px 0px rgba(10, 44, 81, 0.08);
     }
 
-    /* 全域字型與淺色 Tonal Surface 主題設定 */
+    /* 徹底移除 Streamlit 頂部白色橫條、三個點選單與預設 Toolbar，避免遮擋標題 */
+    header[data-testid="stHeader"] {
+        display: none !important;
+    }
+    #MainMenu {
+        display: none !important;
+    }
+    div[data-testid="stToolbar"] {
+        display: none !important;
+    }
+    .stDeployButton {
+        display: none !important;
+    }
+    footer {
+        display: none !important;
+    }
+
+    /* 全域字型與淺色清爽球場白底設定 */
     .stApp {
-        background-color: var(--md-sys-color-surface) !important;
-        color: var(--md-sys-color-on-surface) !important;
+        background-color: var(--theme-color-surface) !important;
+        color: var(--theme-color-on-surface) !important;
         font-family: 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
     }
 
     h1, h2, h3, h4, h5, h6 {
         font-family: 'Roboto', sans-serif !important;
-        font-weight: 500 !important;
-        color: var(--md-sys-color-on-surface) !important;
+        font-weight: 700 !important;
+        color: var(--theme-color-primary) !important;
         letter-spacing: -0.01em !important;
     }
     
@@ -216,20 +217,20 @@ st.markdown("""
     }
 
     .block-container {
-        padding-top: 1.8rem !important;
-        padding-bottom: 3rem !important;
-        max-width: 1420px !important;
+        padding-top: 1.2rem !important;
+        padding-bottom: 2.5rem !important;
+        max-width: 1440px !important;
     }
 
-    /* 戰情頂部標題列 Material You 容器與有機漸層氛圍 (Atmospheric Blur Shapes) */
+    /* 戰情頂部標題列 (藍白紅經典漸層氛圍) */
     .war-room-header-wrapper {
         position: relative;
         overflow: hidden;
-        border-radius: var(--md-sys-shape-corner-xxl);
-        background: var(--md-sys-color-surface-container);
-        border: 1px solid var(--md-sys-color-outline-variant);
-        box-shadow: var(--md-sys-elevation-1);
-        margin-bottom: 22px;
+        border-radius: var(--theme-shape-xxl);
+        background: linear-gradient(135deg, #FFFFFF 0%, #F1F5F9 100%);
+        border: 2px solid var(--theme-color-outline-variant);
+        box-shadow: var(--theme-elevation-1);
+        margin-bottom: 20px;
     }
 
     .md-blob {
@@ -241,25 +242,25 @@ st.markdown("""
     }
 
     .md-blob-1 {
-        width: 260px;
-        height: 260px;
-        background: radial-gradient(circle, rgba(103, 80, 164, 0.22) 0%, rgba(234, 221, 255, 0.04) 70%);
+        width: 280px;
+        height: 280px;
+        background: radial-gradient(circle, rgba(10, 44, 81, 0.16) 0%, rgba(226, 236, 248, 0.02) 70%);
         top: -70px;
         right: -30px;
     }
 
     .md-blob-2 {
-        width: 220px;
-        height: 220px;
-        background: radial-gradient(circle, rgba(125, 82, 96, 0.18) 0%, rgba(255, 216, 228, 0.03) 70%);
+        width: 240px;
+        height: 240px;
+        background: radial-gradient(circle, rgba(232, 56, 61, 0.13) 0%, rgba(253, 232, 233, 0.02) 70%);
         bottom: -60px;
         left: 25%;
     }
 
     .md-blob-3 {
-        width: 180px;
-        height: 180px;
-        background: radial-gradient(circle, rgba(232, 222, 248, 0.6) 0%, rgba(255, 251, 254, 0) 70%);
+        width: 200px;
+        height: 200px;
+        background: radial-gradient(circle, rgba(30, 90, 160, 0.15) 0%, rgba(248, 249, 250, 0) 70%);
         top: -20px;
         left: -30px;
     }
@@ -267,184 +268,178 @@ st.markdown("""
     .war-room-header {
         position: relative;
         z-index: 1;
-        padding: 26px 30px;
+        padding: 26px 32px;
     }
 
     .war-room-title {
-        font-size: 28px;
-        font-weight: 700;
-        color: var(--md-sys-color-primary);
+        font-size: 30px;
+        font-weight: 900;
+        color: var(--theme-color-primary);
         margin: 0 0 6px 0;
-        letter-spacing: -0.01em;
+        letter-spacing: -0.02em;
     }
 
     .war-room-subtitle {
-        color: var(--md-sys-color-on-surface-variant);
+        color: var(--theme-color-on-surface-variant);
         font-size: 14.5px;
         margin: 0;
         line-height: 1.5;
     }
 
-    /* KPI 戰情卡片 (Material You Tonal Surface Card with Elevation) */
+    /* KPI 戰情卡片 (高對比白色立體卡片) */
     .kpi-card {
-        background: var(--md-sys-color-surface-container);
-        border: 1px solid var(--md-sys-color-outline-variant);
-        border-radius: var(--md-sys-shape-corner-lg);
-        padding: 20px 22px;
-        box-shadow: var(--md-sys-elevation-1);
-        transition: transform var(--md-sys-motion-duration) var(--md-sys-motion-easing),
-                    box-shadow var(--md-sys-motion-duration) var(--md-sys-motion-easing),
-                    background-color var(--md-sys-motion-duration) var(--md-sys-motion-easing);
+        background: var(--theme-color-surface-container);
+        border: 1.5px solid var(--theme-color-outline-variant);
+        border-radius: var(--theme-shape-lg);
+        padding: 22px 24px;
+        box-shadow: var(--theme-elevation-1);
+        transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
         height: 100%;
         box-sizing: border-box;
     }
 
     .kpi-card:hover {
-        transform: translateY(-3px) scale(1.015);
-        box-shadow: var(--md-sys-elevation-2);
-        background-color: var(--md-sys-color-surface-container-high);
-    }
-
-    .kpi-card:active {
-        transform: scale(0.98);
+        transform: translateY(-3px);
+        box-shadow: var(--theme-elevation-2);
+        border-color: var(--theme-color-primary);
     }
 
     .kpi-label {
         font-size: 12px;
         text-transform: uppercase;
-        letter-spacing: 0.04em;
-        color: var(--md-sys-color-on-surface-variant);
-        font-weight: 500;
+        letter-spacing: 0.05em;
+        color: var(--theme-color-on-surface-variant);
+        font-weight: 700;
         margin-bottom: 8px;
     }
 
     .kpi-value {
-        font-size: 30px;
-        font-weight: 700;
+        font-size: 32px;
+        font-weight: 900;
         line-height: 1.2;
         margin-bottom: 6px;
         letter-spacing: -0.01em;
     }
 
     .kpi-subtext {
-        font-size: 12px;
-        color: var(--md-sys-color-on-surface-variant);
+        font-size: 12.5px;
+        color: var(--theme-color-on-surface-variant);
         line-height: 1.4;
     }
 
-    /* 狀態警示燈號藥丸徽章 (Material You Pill Badges) */
+    /* 狀態警示燈號藥丸徽章 */
     .badge {
         display: inline-flex;
         align-items: center;
         gap: 6px;
-        padding: 5px 13px;
-        border-radius: var(--md-sys-shape-corner-full);
+        padding: 5px 14px;
+        border-radius: var(--theme-shape-full);
         font-size: 12px;
-        font-weight: 500;
-        letter-spacing: 0.01em;
-        transition: all var(--md-sys-motion-duration) var(--md-sys-motion-easing);
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        transition: all 0.2s ease;
     }
 
     .badge-green {
-        background-color: var(--md-sys-color-success-container);
-        color: var(--md-sys-color-on-success-container);
-        border: 1px solid rgba(27, 110, 62, 0.25);
+        background-color: var(--theme-color-success-container);
+        color: var(--theme-color-on-success-container);
+        border: 1px solid rgba(5, 150, 105, 0.3);
     }
 
     .badge-yellow {
-        background-color: var(--md-sys-color-warning-container);
-        color: var(--md-sys-color-on-warning-container);
-        border: 1px solid rgba(140, 80, 0, 0.25);
+        background-color: var(--theme-color-warning-container);
+        color: var(--theme-color-on-warning-container);
+        border: 1px solid rgba(217, 119, 6, 0.3);
     }
 
     .badge-red {
-        background-color: var(--md-sys-color-danger-container);
-        color: var(--md-sys-color-on-danger-container);
-        border: 1px solid rgba(186, 26, 26, 0.3);
-        animation: md-pulse-red 2.4s infinite;
+        background-color: var(--theme-color-danger-container);
+        color: var(--theme-color-danger);
+        border: 1px solid rgba(232, 56, 61, 0.4);
+        animation: rb-pulse-red 2.4s infinite;
     }
 
     .badge-tonal {
-        background-color: var(--md-sys-color-secondary-container);
-        color: var(--md-sys-color-on-secondary-container);
-        border: 1px solid rgba(103, 80, 164, 0.18);
+        background-color: var(--theme-color-primary-container);
+        color: var(--theme-color-primary);
+        border: 1px solid rgba(10, 44, 81, 0.2);
     }
 
     .badge-primary {
-        background-color: var(--md-sys-color-primary);
-        color: var(--md-sys-color-on-primary);
+        background-color: var(--theme-color-primary);
+        color: var(--theme-color-on-primary);
     }
 
-    @keyframes md-pulse-red {
-        0% { box-shadow: 0 0 0 0 rgba(186, 26, 26, 0.35); }
-        70% { box-shadow: 0 0 0 6px rgba(186, 26, 26, 0); }
-        100% { box-shadow: 0 0 0 0 rgba(186, 26, 26, 0); }
+    @keyframes rb-pulse-red {
+        0% { box-shadow: 0 0 0 0 rgba(232, 56, 61, 0.35); }
+        70% { box-shadow: 0 0 0 6px rgba(232, 56, 61, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(232, 56, 61, 0); }
     }
 
-    /* 球員監控卡片 (Roster Matrix Player Cards) */
+    /* 球員監控卡片 */
     .player-card {
-        background: var(--md-sys-color-surface-container);
-        border: 1.5px solid var(--md-sys-color-outline-variant);
+        background: var(--theme-color-surface-container);
+        border: 1.5px solid var(--theme-color-outline-variant);
         border-radius: 20px;
         padding: 14px 10px;
         text-align: center;
-        box-shadow: var(--md-sys-elevation-1);
-        transition: all var(--md-sys-motion-duration) var(--md-sys-motion-easing);
+        box-shadow: var(--theme-elevation-1);
+        transition: all 0.2s ease;
         margin-bottom: 6px;
     }
 
     .player-card:hover {
-        transform: translateY(-2px) scale(1.015);
-        box-shadow: var(--md-sys-elevation-2);
-        background-color: var(--md-sys-color-surface-container-high);
+        transform: translateY(-2px);
+        box-shadow: var(--theme-elevation-2);
+        border-color: var(--theme-color-primary);
     }
 
     .player-name {
-        font-size: 15.5px;
+        font-size: 16px;
         font-weight: 700;
-        color: var(--md-sys-color-on-surface);
+        color: var(--theme-color-primary);
         margin-bottom: 2px;
     }
 
     .player-pos {
         font-size: 11.5px;
-        color: var(--md-sys-color-on-surface-variant);
+        color: var(--theme-color-on-surface-variant);
         margin-bottom: 8px;
     }
 
-    /* 建議行動處方卡 (Material You Actionable Prescription Cards) */
+    /* 建議行動處方卡 (左邊條顏色) */
     .action-card {
-        background: var(--md-sys-color-surface-container);
-        border: 1px solid var(--md-sys-color-outline-variant);
-        border-radius: var(--md-sys-shape-corner-lg);
+        background: var(--theme-color-surface-container);
+        border: 1.5px solid var(--theme-color-outline-variant);
+        border-radius: var(--theme-shape-lg);
         padding: 22px 24px;
         margin-bottom: 16px;
-        border-left: 6px solid var(--md-sys-color-primary);
-        box-shadow: var(--md-sys-elevation-1);
-        transition: all var(--md-sys-motion-duration) var(--md-sys-motion-easing);
+        border-left: 6px solid var(--theme-color-primary);
+        box-shadow: var(--theme-elevation-1);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
         height: 100%;
         box-sizing: border-box;
     }
 
     .action-card:hover {
         transform: translateY(-2px);
-        box-shadow: var(--md-sys-elevation-2);
+        box-shadow: var(--theme-elevation-2);
     }
 
     .action-card.card-warning {
-        border-left-color: var(--md-sys-color-warning);
-        background: linear-gradient(180deg, rgba(255, 220, 187, 0.35) 0%, var(--md-sys-color-surface-container) 100%);
+        border-left-color: var(--theme-color-warning);
+        background: linear-gradient(180deg, rgba(254, 243, 199, 0.35) 0%, #FFFFFF 100%);
     }
 
     .action-card.card-danger {
-        border-left-color: var(--md-sys-color-danger);
-        background: linear-gradient(180deg, rgba(255, 218, 214, 0.45) 0%, var(--md-sys-color-surface-container) 100%);
+        border-left-color: var(--theme-color-danger);
+        background: linear-gradient(180deg, rgba(253, 232, 233, 0.45) 0%, #FFFFFF 100%);
     }
 
     .action-title {
-        font-size: 15.5px;
+        font-size: 16px;
         font-weight: 700;
-        color: var(--md-sys-color-on-surface);
+        color: var(--theme-color-on-surface);
         margin-bottom: 10px;
         display: flex;
         align-items: center;
@@ -453,21 +448,21 @@ st.markdown("""
 
     .action-body {
         font-size: 13.5px;
-        color: var(--md-sys-color-on-surface-variant);
+        color: var(--theme-color-on-surface-variant);
         line-height: 1.6;
     }
 
     .action-body b {
-        color: var(--md-sys-color-on-surface);
+        color: var(--theme-color-primary);
     }
 
-    /* 運動生理即時遙測卡 (Telemetry Card) */
+    /* 運動生理即時遙測卡 */
     .telemetry-card {
-        background: var(--md-sys-color-surface-container);
-        border: 1px solid var(--md-sys-color-outline-variant);
+        background: var(--theme-color-surface-container);
+        border: 1.5px solid var(--theme-color-outline-variant);
         border-radius: 20px;
-        padding: 20px 22px;
-        box-shadow: var(--md-sys-elevation-1);
+        padding: 22px 24px;
+        box-shadow: var(--theme-elevation-1);
     }
 
     .telemetry-row {
@@ -476,174 +471,177 @@ st.markdown("""
         align-items: center;
         margin-bottom: 12px;
         font-size: 13.5px;
-        color: var(--md-sys-color-on-surface-variant);
+        color: var(--theme-color-on-surface-variant);
     }
 
     .telemetry-row.total-row {
-        border-top: 1px solid var(--md-sys-color-outline-variant);
+        border-top: 1.5px solid var(--theme-color-outline-variant);
         padding-top: 12px;
-        margin-top: 8px;
+        margin-top: 10px;
         margin-bottom: 0;
         font-weight: 700;
-        color: var(--md-sys-color-on-surface);
+        color: var(--theme-color-on-surface);
     }
 
-    /* 模擬介入效益卡 (Intervention Benefit Callout) */
+    /* 模擬介入效益卡 */
     .benefit-callout {
-        background: var(--md-sys-color-success-container);
-        color: var(--md-sys-color-on-success-container);
-        border: 1px solid rgba(27, 110, 62, 0.25);
+        background: var(--theme-color-success-container);
+        color: var(--theme-color-on-success-container);
+        border: 1.5px solid rgba(5, 150, 105, 0.3);
         border-radius: 20px;
         padding: 20px 24px;
-        margin-top: 14px;
+        margin-top: 16px;
         font-size: 14px;
         line-height: 1.6;
-        box-shadow: var(--md-sys-elevation-1);
+        box-shadow: var(--theme-elevation-1);
     }
 
     .benefit-callout b {
-        color: var(--md-sys-color-on-success-container);
+        color: var(--theme-color-on-success-container);
     }
 
-    /* 頁籤元件：Material You Pill Tabs 導覽樣式 */
+    /* 頁籤元件：藍白紅經典藥丸型導覽標籤 */
     div[data-baseweb="tab-list"] {
-        background-color: var(--md-sys-color-surface-container) !important;
+        background-color: #FFFFFF !important;
         border-radius: 9999px !important;
         padding: 6px !important;
-        border: 1px solid var(--md-sys-color-outline-variant) !important;
+        border: 1.5px solid var(--theme-color-outline-variant) !important;
         gap: 8px !important;
         margin-bottom: 24px !important;
+        box-shadow: var(--theme-elevation-1) !important;
     }
 
     div[data-baseweb="tab"] {
         border-radius: 9999px !important;
-        padding: 8px 20px !important;
-        font-weight: 500 !important;
+        padding: 9px 22px !important;
+        font-weight: 700 !important;
         font-family: 'Roboto', sans-serif !important;
         font-size: 14px !important;
-        color: var(--md-sys-color-on-surface-variant) !important;
+        color: var(--theme-color-on-surface-variant) !important;
         background-color: transparent !important;
         border: none !important;
-        transition: all 250ms cubic-bezier(0.2, 0, 0, 1) !important;
+        transition: all 0.2s ease !important;
     }
 
     div[data-baseweb="tab"]:hover {
-        background-color: rgba(103, 80, 164, 0.08) !important;
-        color: var(--md-sys-color-primary) !important;
+        background-color: var(--theme-color-primary-container) !important;
+        color: var(--theme-color-primary) !important;
     }
 
     div[data-baseweb="tab"][aria-selected="true"] {
-        background-color: var(--md-sys-color-primary) !important;
-        color: var(--md-sys-color-on-primary) !important;
-        box-shadow: var(--md-sys-elevation-1) !important;
+        background-color: var(--theme-color-primary) !important;
+        color: #FFFFFF !important;
+        box-shadow: 0 2px 8px rgba(10, 44, 81, 0.25) !important;
     }
 
     div[data-baseweb="tab-highlight"] {
         display: none !important;
     }
 
-    /* 側邊欄控制與 Streamlit 原生元件客製 */
+    /* 側邊欄控制 */
     div[data-testid="stSidebar"] {
-        background-color: var(--md-sys-color-surface-container) !important;
-        border-right: 1px solid var(--md-sys-color-outline-variant) !important;
+        background-color: #FFFFFF !important;
+        border-right: 1.5px solid var(--theme-color-outline-variant) !important;
     }
 
     div[data-testid="stSidebar"] hr {
-        border-color: var(--md-sys-color-outline-variant) !important;
+        border-color: var(--theme-color-outline-variant) !important;
     }
 
-    /* Streamlit 下拉選單：Material 3 Filled Text Field 樣式 */
+    /* 下拉選單 */
     div[data-baseweb="select"] > div {
-        background-color: var(--md-sys-color-surface-container-low) !important;
-        border-top-left-radius: 12px !important;
-        border-top-right-radius: 12px !important;
-        border-bottom-left-radius: 0px !important;
-        border-bottom-right-radius: 0px !important;
-        border-top: none !important;
-        border-left: none !important;
-        border-right: none !important;
-        border-bottom: 2px solid var(--md-sys-color-outline) !important;
-        color: var(--md-sys-color-on-surface) !important;
-        transition: all 200ms cubic-bezier(0.2, 0, 0, 1) !important;
+        background-color: var(--theme-color-surface-container-low) !important;
+        border-radius: 12px !important;
+        border: 1.5px solid var(--theme-color-outline) !important;
+        color: var(--theme-color-on-surface) !important;
+        transition: border-color 0.2s ease !important;
     }
 
     div[data-baseweb="select"] > div:hover {
-        border-bottom-color: var(--md-sys-color-on-surface) !important;
-        background-color: var(--md-sys-color-surface-variant) !important;
+        border-color: var(--theme-color-primary) !important;
     }
 
     div[data-baseweb="select"] > div:focus-within {
-        border-bottom: 2px solid var(--md-sys-color-primary) !important;
+        border-color: var(--theme-color-primary) !important;
+        box-shadow: 0 0 0 3px rgba(10, 44, 81, 0.15) !important;
     }
 
     div[data-baseweb="popover"] ul {
-        background-color: var(--md-sys-color-surface) !important;
+        background-color: #FFFFFF !important;
         border-radius: 16px !important;
-        box-shadow: var(--md-sys-elevation-2) !important;
-        border: 1px solid var(--md-sys-color-outline-variant) !important;
+        box-shadow: var(--theme-elevation-2) !important;
+        border: 1.5px solid var(--theme-color-outline-variant) !important;
         padding: 8px !important;
     }
 
     div[data-baseweb="popover"] li {
         border-radius: 9999px !important;
-        color: var(--md-sys-color-on-surface) !important;
-        transition: background-color 150ms ease !important;
+        color: var(--theme-color-on-surface) !important;
+        transition: background-color 0.15s ease !important;
     }
 
     div[data-baseweb="popover"] li:hover {
-        background-color: var(--md-sys-color-secondary-container) !important;
+        background-color: var(--theme-color-primary-container) !important;
+        color: var(--theme-color-primary) !important;
     }
 
-    /* 滑桿 (Slider) */
+    /* 滑桿 (Slider) - 解決滑鼠懸停跳動問題 (移除 scale，採用平穩 halo shadow) */
     div[data-testid="stSlider"] div[role="slider"] {
-        background-color: var(--md-sys-color-primary) !important;
-        border: 2px solid var(--md-sys-color-surface) !important;
-        box-shadow: var(--md-sys-elevation-1) !important;
-        transition: transform 150ms cubic-bezier(0.2, 0, 0, 1) !important;
+        background-color: var(--theme-color-primary) !important;
+        border: 2px solid #FFFFFF !important;
+        box-shadow: 0 1px 4px rgba(10, 44, 81, 0.3) !important;
+        transition: box-shadow 0.2s ease, background-color 0.2s ease !important;
+        transform: none !important;
     }
 
     div[data-testid="stSlider"] div[role="slider"]:hover {
-        transform: scale(1.2) !important;
+        box-shadow: 0 0 0 6px rgba(10, 44, 81, 0.15) !important;
+        transform: none !important;
+    }
+
+    div[data-testid="stSlider"] div[role="slider"]:active {
+        box-shadow: 0 0 0 8px rgba(10, 44, 81, 0.25) !important;
+        transform: none !important;
     }
 
     /* 開關 (Toggle Switch) */
     div[data-testid="stCheckbox"] label,
     div[data-testid="stToggle"] label {
-        color: var(--md-sys-color-on-surface) !important;
+        color: var(--theme-color-on-surface) !important;
         font-weight: 500 !important;
     }
 
-    /* 按鈕 (Buttons - Pill-shaped) */
+    /* 按鈕 (Buttons - 經典深海軍藍藥丸型) */
     .stButton > button {
         border-radius: 9999px !important;
-        background-color: var(--md-sys-color-primary) !important;
-        color: var(--md-sys-color-on-primary) !important;
+        background-color: var(--theme-color-primary) !important;
+        color: #FFFFFF !important;
         border: none !important;
         padding: 8px 20px !important;
-        font-weight: 500 !important;
+        font-weight: 700 !important;
         font-size: 13.5px !important;
-        box-shadow: var(--md-sys-elevation-1) !important;
-        transition: all 300ms cubic-bezier(0.2, 0, 0, 1) !important;
+        box-shadow: var(--theme-elevation-1) !important;
+        transition: all 0.2s ease !important;
     }
 
     .stButton > button:hover {
-        background-color: rgba(103, 80, 164, 0.9) !important;
-        box-shadow: var(--md-sys-elevation-2) !important;
+        background-color: var(--theme-color-accent-blue) !important;
+        box-shadow: var(--theme-elevation-2) !important;
         transform: translateY(-1px) !important;
     }
 
     .stButton > button:active {
-        transform: scale(0.95) !important;
-        background-color: rgba(103, 80, 164, 0.8) !important;
+        transform: scale(0.97) !important;
+        background-color: #061D36 !important;
     }
 
     /* 頁尾資訊列 */
     .mfews-footer {
-        border-top: 1px solid var(--md-sys-color-outline-variant);
+        border-top: 1.5px solid var(--theme-color-outline-variant);
         padding-top: 24px;
         margin-top: 40px;
         text-align: center;
-        color: var(--md-sys-color-on-surface-variant);
+        color: var(--theme-color-on-surface-variant);
         font-size: 13px;
         line-height: 1.6;
     }
@@ -904,7 +902,7 @@ all_players_data = generate_baseball_season_data()
 player_keys = list(all_players_data.keys())
 
 # =============================================================================
-# 3. 側邊欄控制中心 (Material You Form Controls)
+# 3. 側邊欄控制中心 (移除評審觀察指南)
 # =============================================================================
 st.sidebar.markdown("## ⚙️ 戰情室控制中心")
 
@@ -929,13 +927,6 @@ st.sidebar.markdown("### 🎯 疲勞預警警戒閾值設定")
 threshold_red = st.sidebar.slider("高風險警戒線 (MFI Red)", 65, 80, 70, 1, help="當微疲勞指數超過此門檻時亮起紅燈預警")
 threshold_yellow = st.sidebar.slider("觀察期門檻 (MFI Yellow)", 45, 60, 50, 1, help="當微疲勞指數介於此區間時亮起黃燈觀察")
 
-st.sidebar.markdown("---")
-st.sidebar.markdown("""
-**💡 評審觀察指南：**
-- 切換至 **陳傑憲** 可重現「第 48~58 場微疲勞竄升，但累積打擊率至第 60 場才崩盤」之典型 **12 天先行預警時差**。
-- 切換至 **古林睿煬** 可觀察「先發投手出手點 3D 空間離散度增大與均速損耗」之投球動力學微疲勞。
-""")
-
 # 取得選定球員資料
 selected_df = all_players_data[selected_player]
 is_batter = selected_df["role_type"].iloc[0] == "打者"
@@ -957,7 +948,7 @@ st.markdown("""
                 </div>
             </div>
             <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                <span class="badge badge-green">● 系統在線：純前端 WebAssembly</span>
+                <span class="badge badge-green">● 系統在線：WebAssembly</span>
                 <span class="badge badge-tonal">即時監控：第 115 場</span>
             </div>
         </div>
@@ -969,43 +960,43 @@ st.markdown("""
 high_risk_count = sum(1 for p in player_keys if all_players_data[p]["mfi"].iloc[-1] >= threshold_red)
 high_risk_names = "、".join([p for p in player_keys if all_players_data[p]["mfi"].iloc[-1] >= threshold_red])
 
-# 頂部戰情 4 大核心 KPI 指標卡片 (Material You 24px Radius Cards)
+# 頂部戰情 4 大核心 KPI 指標卡片
 kpi_c1, kpi_c2, kpi_c3, kpi_c4 = st.columns(4)
 
 with kpi_c1:
-    st.markdown(render_md3_kpi_card(
+    st.markdown(render_theme_kpi_card(
         label="隊伍綜合健康指數 (THI)",
         value="81.4",
         unit="/ 100",
         subtext="全隊加權微疲勞風險控制優良",
-        color="#6750A4"
+        color="#0A2C51"
     ), unsafe_allow_html=True)
 
 with kpi_c2:
-    st.markdown(render_md3_kpi_card(
+    st.markdown(render_theme_kpi_card(
         label="隱形高風險疲勞球員 (High Risk)",
         value=str(high_risk_count),
         unit="位",
         subtext=f"警戒球員：{high_risk_names}" if high_risk_names else "全隊維持於安全區間",
-        color="#BA1A1A"
+        color="#E8383D"
     ), unsafe_allow_html=True)
 
 with kpi_c3:
-    st.markdown(render_md3_kpi_card(
+    st.markdown(render_theme_kpi_card(
         label="先行預警平均領先時差 (Lead Time)",
         value="12.4",
         unit="天",
         subtext="相當於傳統成績跳水前 10~14 天",
-        color="#8C5000"
+        color="#D97706"
     ), unsafe_allow_html=True)
 
 with kpi_c4:
-    st.markdown(render_md3_kpi_card(
+    st.markdown(render_theme_kpi_card(
         label="負荷介入預防成功率 (Prevention)",
         value="88.5",
         unit="%",
         subtext="成功避免 15 天以上長期低潮或受傷",
-        color="#1B6E3E"
+        color="#059669"
     ), unsafe_allow_html=True)
 
 st.write("")
@@ -1024,14 +1015,14 @@ for idx, p_name in enumerate(player_keys):
     
     # 依據動態閾值決定燈號
     if curr_mfi >= threshold_red:
-        badge_html = render_md3_badge(f"🔴 高風險 ({curr_mfi:.1f})", "red")
+        badge_html = render_theme_badge(f"🔴 高風險 ({curr_mfi:.1f})", "red")
     elif curr_mfi >= threshold_yellow:
-        badge_html = render_md3_badge(f"🟡 觀察期 ({curr_mfi:.1f})", "yellow")
+        badge_html = render_theme_badge(f"🟡 觀察期 ({curr_mfi:.1f})", "yellow")
     else:
-        badge_html = render_md3_badge(f"🟢 正常 ({curr_mfi:.1f})", "green")
+        badge_html = render_theme_badge(f"🟢 正常 ({curr_mfi:.1f})", "green")
         
     is_active = (p_name == selected_player)
-    active_style = "border-color: #6750A4; background: #E8DEF8; box-shadow: 0 4px 12px rgba(103, 80, 164, 0.2);" if is_active else ""
+    active_style = "border-color: #0A2C51; background: #E2ECF8; box-shadow: 0 4px 14px rgba(10, 44, 81, 0.2);" if is_active else ""
     
     with matrix_cols[idx]:
         st.markdown(f"""
@@ -1049,7 +1040,7 @@ for idx, p_name in enumerate(player_keys):
 st.write("")
 
 # =============================================================================
-# 6. 互動式全功能導覽頁籤 (Material You Interactive Tabs)
+# 6. 互動式全功能導覽頁籤 (藍白紅經典藥丸頁籤)
 # =============================================================================
 tab1, tab2, tab3, tab4 = st.tabs([
     "📈 賽季時序深度診斷 (Diagnostics)",
@@ -1059,28 +1050,32 @@ tab1, tab2, tab3, tab4 = st.tabs([
 ])
 
 # -----------------------------------------------------------------------------
-# TAB 1: 賽季微疲勞時序對比圖 (Plotly Subplots - 修復 AttributeError & 增加互動縮放)
+# TAB 1: 賽季微疲勞時序對比圖 (優化排版加大間距、不擁擠、藍白紅色系)
 # -----------------------------------------------------------------------------
 with tab1:
-    col_filter1, col_filter2 = st.columns([1.5, 1])
-    with col_filter1:
-        game_range = st.slider(
-            "🔍 賽季場次時序滑桿 (動態縮放觀測時長):",
-            min_value=1,
-            max_value=115,
-            value=(1, 115),
-            step=1,
-            help="滑動以聚焦於關鍵場次區間（例如第 40~75 場先行預警時差窗口）"
-        )
-    with col_filter2:
-        st.markdown(f"""
-        <div style="background: var(--md-sys-color-surface-container); border: 1px solid var(--md-sys-color-outline-variant); border-radius: 16px; padding: 12px 18px; margin-top: 14px;">
-            <div style="font-size: 12px; color: var(--md-sys-color-on-surface-variant);">目前監控球員與角色</div>
-            <div style="font-size: 16px; font-weight: 700; color: var(--md-sys-color-primary);">
-                {selected_player} <span style="font-size: 13px; font-weight: 500; color: var(--md-sys-color-on-surface);">({selected_df["pos"].iloc[0]})</span>
+    # 寬敞時序控制面板
+    st.markdown(f"""
+    <div style="background: #FFFFFF; border: 1.5px solid #CBD5E1; border-radius: 20px; padding: 18px 24px; margin-bottom: 20px; box-shadow: 0 1px 4px rgba(10, 44, 81, 0.05);">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 10px;">
+            <div>
+                <span style="font-size: 16px; font-weight: 700; color: #0A2C51;">📅 賽季時序視窗動態縮放</span>
+                <span style="font-size: 13px; color: #475569; margin-left: 8px;">滑動以聚焦關鍵場次區間（例如第 40~75 場先行預警時差窗口）</span>
+            </div>
+            <div>
+                <span class="badge badge-tonal">目前檢視：<b>{selected_player}</b> ({selected_df["pos"].iloc[0]})</span>
             </div>
         </div>
-        """, unsafe_allow_html=True)
+    </div>
+    """, unsafe_allow_html=True)
+
+    game_range = st.slider(
+        "調整賽季場次範圍 (Game Range):",
+        min_value=1,
+        max_value=115,
+        value=(1, 115),
+        step=1,
+        help="滑動以聚焦於特定賽季區間"
+    )
 
     # 依據滑桿過濾時序資料
     filtered_df = selected_df[(selected_df["game"] >= game_range[0]) & (selected_df["game"] <= game_range[1])]
@@ -1123,26 +1118,26 @@ with tab1:
             s_ivb = np.clip((18.0 - filtered_df["ivb_inch"]) / (18.0 - 14.0), 0, 1) * 100
             plot_mfi = np.round(w_rel_n * s_rel + w_velo_n * s_velo + w_ivb_n * s_ivb, 1)
 
-    # 建立雙子圖配置
+    # 建立雙子圖配置 (加大高度與間距，徹底解除擁擠感)
     if is_batter:
         fig = make_subplots(
             rows=2, cols=1,
             shared_xaxes=True,
-            vertical_spacing=0.10,
+            vertical_spacing=0.14,
             subplot_titles=(
-                f"落後指標：{selected_player} 傳統累積打擊率 (Cumulative AVG) 走勢",
-                f"先行指標：微疲勞指數 (MFI) 與 好球帶決策特徵 (滾動 7 天 O-Swing%, Z-Whiff%, HardHit%)"
+                f"📊 落後指標：{selected_player} 傳統累積打擊率 (Cumulative AVG) 走勢",
+                f"🔬 先行指標：微疲勞指數 (MFI) 與 好球帶決策特徵 (滾動 7 天 O-Swing%, Z-Whiff%, HardHit%)"
             ),
-            row_heights=[0.42, 0.58]
+            row_heights=[0.44, 0.56]
         )
         
-        # 上圖：傳統累積打擊率 (Material You Primary Purple #6750A4)
+        # 上圖：傳統累積打擊率 (經典深海軍藍 #0A2C51)
         fig.add_trace(
             go.Scatter(
                 x=filtered_df["game"].tolist(),
                 y=filtered_df["cum_avg"].tolist(),
                 name="累積打擊率 (AVG)",
-                line=dict(color="#6750A4", width=3.2),
+                line=dict(color="#0A2C51", width=3.5),
                 hovertemplate="第 %{x} 場<br>累積打擊率: %{y:.3f}<extra></extra>"
             ),
             row=1, col=1
@@ -1150,75 +1145,75 @@ with tab1:
         
         # 聯盟平均打擊率基準線
         fig.add_hline(
-            y=0.265, line_dash="dot", line_color="#79747E",
+            y=0.265, line_dash="dot", line_color="#64748B",
             annotation_text="聯盟平均 (.265)", annotation_position="bottom right",
-            annotation_font_color="#49454F", annotation_font_size=11,
+            annotation_font_color="#475569", annotation_font_size=11,
             row=1, col=1
         )
         
-        # 下圖：微疲勞綜合風險指數 (MFI)
+        # 下圖：微疲勞綜合風險指數 (MFI, 鮮紅 #E8383D)
         fig.add_trace(
             go.Scatter(
                 x=filtered_df["game"].tolist(),
                 y=plot_mfi.tolist() if hasattr(plot_mfi, "tolist") else list(plot_mfi),
                 name="微疲勞綜合風險指數 (MFI)",
-                line=dict(color="#BA1A1A", width=3.5),
+                line=dict(color="#E8383D", width=3.5),
                 hovertemplate="第 %{x} 場<br>MFI 指數: %{y:.1f}<extra></extra>"
             ),
             row=2, col=1
         )
         
-        # 滾動 7 天 O-Swing% (壞球追打率)
+        # 滾動 7 天 O-Swing% (壞球追打率 - 琥珀黃 #D97706)
         fig.add_trace(
             go.Scatter(
                 x=filtered_df["game"].tolist(),
                 y=filtered_df["roll_oswing"].tolist(),
                 name="壞球追打率 O-Swing% (7天滾動)",
-                line=dict(color="#8C5000", width=1.8, dash="dash"),
+                line=dict(color="#D97706", width=2.0, dash="dash"),
                 hovertemplate="第 %{x} 場<br>O-Swing%: %{y:.1f}%<extra></extra>"
             ),
             row=2, col=1
         )
         
-        # 滾動 7 天 Z-Whiff% (帶內揮空率)
+        # 滾動 7 天 Z-Whiff% (帶內揮空率 - 科技活力藍 #1E5AA0)
         fig.add_trace(
             go.Scatter(
                 x=filtered_df["game"].tolist(),
                 y=filtered_df["roll_zwhiff"].tolist(),
                 name="帶內揮空率 Z-Whiff% (7天滾動)",
-                line=dict(color="#7D5260", width=1.8, dash="dot"),
+                line=dict(color="#1E5AA0", width=2.0, dash="dot"),
                 hovertemplate="第 %{x} 場<br>Z-Whiff%: %{y:.1f}%<extra></extra>"
             ),
             row=2, col=1
         )
         
-        # 滾動 7 天 HardHit% (強擊球率)
+        # 滾動 7 天 HardHit% (強擊球率 - 翡翠綠 #059669)
         fig.add_trace(
             go.Scatter(
                 x=filtered_df["game"].tolist(),
                 y=filtered_df["roll_hardhit"].tolist(),
                 name="強擊球率 HardHit% (7天滾動)",
-                line=dict(color="#1B6E3E", width=1.8, dash="dashdot"),
+                line=dict(color="#059669", width=2.0, dash="dashdot"),
                 hovertemplate="第 %{x} 場<br>HardHit%: %{y:.1f}%<extra></extra>"
             ),
             row=2, col=1
         )
         
-        # 門檻標示線 (完全使用相容語法，杜絕 AttributeError)
+        # 門檻標示線
         fig.add_hline(
-            y=threshold_red, line_dash="dash", line_color="#BA1A1A",
+            y=threshold_red, line_dash="dash", line_color="#E8383D",
             annotation_text=f"高風險警戒 ({threshold_red})",
-            annotation_font_color="#BA1A1A", annotation_font_size=11,
+            annotation_font_color="#E8383D", annotation_font_size=11,
             row=2, col=1
         )
         fig.add_hline(
-            y=threshold_yellow, line_dash="dash", line_color="#8C5000",
+            y=threshold_yellow, line_dash="dash", line_color="#D97706",
             annotation_text=f"觀察門檻 ({threshold_yellow})",
-            annotation_font_color="#8C5000", annotation_font_size=11,
+            annotation_font_color="#D97706", annotation_font_size=11,
             row=2, col=1
         )
         
-        # 標註疲勞與預警窗口
+        # 標註疲勞與預警窗口 (柔和淺藍色塊 #E2ECF8)
         crash_start = int(selected_df["fatigue_phase_start"].iloc[0])
         crash_end = int(selected_df["performance_crash_point"].iloc[0])
         
@@ -1227,11 +1222,11 @@ with tab1:
             for r_idx in [1, 2]:
                 fig.add_vrect(
                     x0=crash_start, x1=crash_end,
-                    fillcolor="rgba(232, 222, 248, 0.65)",
-                    layer="below", line_width=1.5, line_color="rgba(103, 80, 164, 0.45)",
+                    fillcolor="rgba(226, 236, 248, 0.75)",
+                    layer="below", line_width=1.5, line_color="rgba(10, 44, 81, 0.45)",
                     annotation_text=f"⚡ 黃金預警時差窗口 ({lead_time} 場時差)" if r_idx == 1 else None,
                     annotation_position="top left",
-                    annotation_font_color="#21005D",
+                    annotation_font_color="#0A2C51",
                     annotation_font_size=12,
                     row=r_idx, col=1
                 )
@@ -1244,9 +1239,9 @@ with tab1:
                     fig.add_annotation(
                         x=crash_end, y=crash_y,
                         text=f"📉 第 {crash_end} 場：傳統打擊率崩盤跳水",
-                        showarrow=True, arrowhead=2, arrowsize=1, arrowwidth=2, arrowcolor="#BA1A1A",
+                        showarrow=True, arrowhead=2, arrowsize=1, arrowwidth=2, arrowcolor="#E8383D",
                         ax=45, ay=-45,
-                        font=dict(color="#BA1A1A", size=12, family="Roboto, sans-serif"),
+                        font=dict(color="#E8383D", size=12, family="Roboto, sans-serif"),
                         row=1, col=1
                     )
             
@@ -1255,9 +1250,9 @@ with tab1:
                 fig.add_annotation(
                     x=crash_start, y=float(threshold_red),
                     text=f"🚨 第 {crash_start} 場：MFI 突破 {threshold_red} (先行指標拉警報)",
-                    showarrow=True, arrowhead=2, arrowsize=1, arrowwidth=2, arrowcolor="#8C5000",
+                    showarrow=True, arrowhead=2, arrowsize=1, arrowwidth=2, arrowcolor="#D97706",
                     ax=-45, ay=-50,
-                    font=dict(color="#8C5000", size=12, family="Roboto, sans-serif"),
+                    font=dict(color="#D97706", size=12, family="Roboto, sans-serif"),
                     row=2, col=1
                 )
                 
@@ -1269,57 +1264,57 @@ with tab1:
         fig = make_subplots(
             rows=2, cols=1,
             shared_xaxes=True,
-            vertical_spacing=0.10,
+            vertical_spacing=0.14,
             subplot_titles=(
-                f"落後指標：{selected_player} 傳統防禦率 (ERA) 走勢",
-                f"先行指標：微疲勞指數 (MFI) 與 出手點 3D 空間離散度 / 均速"
+                f"📊 落後指標：{selected_player} 傳統防禦率 (ERA) 走勢",
+                f"🔬 先行指標：微疲勞指數 (MFI) 與 出手點 3D 空間離散度 / 均速"
             ),
-            row_heights=[0.42, 0.58]
+            row_heights=[0.44, 0.56]
         )
         
-        # 1. 上圖：ERA
+        # 1. 上圖：ERA (經典海軍藍 #0A2C51)
         fig.add_trace(
             go.Scatter(
                 x=filtered_df["game"].tolist(),
                 y=filtered_df["cum_era"].tolist(),
                 name="累積防禦率 (ERA)",
-                line=dict(color="#7D5260", width=3.2),
+                line=dict(color="#0A2C51", width=3.5),
                 hovertemplate="第 %{x} 場<br>累積 ERA: %{y:.2f}<extra></extra>"
             ),
             row=1, col=1
         )
         
-        # 2. 下圖：MFI
+        # 2. 下圖：MFI (鮮紅 #E8383D)
         fig.add_trace(
             go.Scatter(
                 x=filtered_df["game"].tolist(),
                 y=plot_mfi.tolist() if hasattr(plot_mfi, "tolist") else list(plot_mfi),
                 name="投手微疲勞指數 (MFI)",
-                line=dict(color="#BA1A1A", width=3.5),
+                line=dict(color="#E8383D", width=3.5),
                 hovertemplate="第 %{x} 場<br>投手 MFI: %{y:.1f}<extra></extra>"
             ),
             row=2, col=1
         )
         
-        # 出手點離散度
+        # 出手點離散度 (活力藍 #1E5AA0)
         fig.add_trace(
             go.Scatter(
                 x=filtered_df["game"].tolist(),
                 y=filtered_df["rel_disp_cm"].tolist(),
                 name="出手點 3D 離散度 (cm)",
-                line=dict(color="#6750A4", width=2, dash="dash"),
+                line=dict(color="#1E5AA0", width=2.0, dash="dash"),
                 hovertemplate="第 %{x} 場<br>出手點離散: %{y:.2f} cm<extra></extra>"
             ),
             row=2, col=1
         )
         
-        # 均速
+        # 均速 (鋼鐵灰藍 #475569)
         fig.add_trace(
             go.Scatter(
                 x=filtered_df["game"].tolist(),
                 y=(filtered_df["fastball_velo_kph"] - 140).tolist(),
                 name="四縫線均速 (km/h - 140 基準)",
-                line=dict(color="#625B71", width=2, dash="dot"),
+                line=dict(color="#475569", width=2.0, dash="dot"),
                 hovertemplate="第 %{x} 場<br>均速: %{text} km/h<extra></extra>",
                 text=filtered_df["fastball_velo_kph"].tolist()
             ),
@@ -1327,9 +1322,9 @@ with tab1:
         )
         
         fig.add_hline(
-            y=threshold_red, line_dash="dash", line_color="#BA1A1A",
+            y=threshold_red, line_dash="dash", line_color="#E8383D",
             annotation_text=f"高風險警戒 ({threshold_red})",
-            annotation_font_color="#BA1A1A", annotation_font_size=11,
+            annotation_font_color="#E8383D", annotation_font_size=11,
             row=2, col=1
         )
         
@@ -1341,11 +1336,11 @@ with tab1:
             for r_idx in [1, 2]:
                 fig.add_vrect(
                     x0=crash_start, x1=crash_end,
-                    fillcolor="rgba(232, 222, 248, 0.65)",
-                    layer="below", line_width=1.5, line_color="rgba(103, 80, 164, 0.45)",
+                    fillcolor="rgba(226, 236, 248, 0.75)",
+                    layer="below", line_width=1.5, line_color="rgba(10, 44, 81, 0.45)",
                     annotation_text=f"⚡ 投手微疲勞預警窗口 ({lead_time} 場時差)" if r_idx == 1 else None,
                     annotation_position="top left",
-                    annotation_font_color="#21005D",
+                    annotation_font_color="#0A2C51",
                     annotation_font_size=12,
                     row=r_idx, col=1
                 )
@@ -1353,54 +1348,54 @@ with tab1:
         y1_title = "累積防禦率 (ERA)"
         y2_title = "MFI 指數 / 運動學指標"
 
-    # Material You Tonal Surface 圖表樣式美化
+    # 圖表整體排版：拉大高度至 740px，清爽白底，加寬邊距
     fig.update_layout(
         template="plotly_white",
-        paper_bgcolor="#FFFBFE",
-        plot_bgcolor="#F3EDF7",
-        font=dict(family="Roboto, sans-serif", color="#1C1B1F"),
-        height=620,
-        margin=dict(l=55, r=30, t=55, b=45),
+        paper_bgcolor="#FFFFFF",
+        plot_bgcolor="#F8FAFC",
+        font=dict(family="Roboto, sans-serif", color="#0F172A"),
+        height=740,
+        margin=dict(l=65, r=35, t=65, b=55),
         hovermode="x unified",
         hoverlabel=dict(
             bgcolor="#FFFFFF",
             font_size=12,
             font_family="Roboto, sans-serif",
-            font_color="#1C1B1F",
-            bordercolor="#CAC4D0"
+            font_color="#0F172A",
+            bordercolor="#CBD5E1"
         ),
         legend=dict(
             orientation="h",
             yanchor="bottom",
-            y=1.02,
+            y=1.03,
             xanchor="right",
             x=1,
-            font=dict(size=11, family="Roboto, sans-serif", color="#49454F"),
-            bgcolor="rgba(243, 237, 247, 0.85)",
-            bordercolor="#CAC4D0",
+            font=dict(size=11.5, family="Roboto, sans-serif", color="#475569"),
+            bgcolor="rgba(255, 255, 255, 0.9)",
+            bordercolor="#CBD5E1",
             borderwidth=1
         )
     )
 
     fig.update_xaxes(
-        showgrid=True, gridwidth=1, gridcolor="#E7E0EC",
+        showgrid=True, gridwidth=1, gridcolor="#E2E8F0",
         title_text="賽季場次 (Game Number)",
-        title_font=dict(size=12, color="#49454F", family="Roboto, sans-serif"),
-        tickfont=dict(color="#49454F", family="Roboto, sans-serif"),
+        title_font=dict(size=12.5, color="#0A2C51", family="Roboto, sans-serif"),
+        tickfont=dict(color="#475569", family="Roboto, sans-serif"),
         zeroline=False
     )
     fig.update_yaxes(
-        showgrid=True, gridwidth=1, gridcolor="#E7E0EC",
+        showgrid=True, gridwidth=1, gridcolor="#E2E8F0",
         row=1, col=1, title_text=y1_title,
-        title_font=dict(size=12, color="#49454F", family="Roboto, sans-serif"),
-        tickfont=dict(color="#49454F", family="Roboto, sans-serif"),
+        title_font=dict(size=12.5, color="#0A2C51", family="Roboto, sans-serif"),
+        tickfont=dict(color="#475569", family="Roboto, sans-serif"),
         zeroline=False
     )
     fig.update_yaxes(
-        showgrid=True, gridwidth=1, gridcolor="#E7E0EC",
+        showgrid=True, gridwidth=1, gridcolor="#E2E8F0",
         row=2, col=1, title_text=y2_title,
-        title_font=dict(size=12, color="#49454F", family="Roboto, sans-serif"),
-        tickfont=dict(color="#49454F", family="Roboto, sans-serif"),
+        title_font=dict(size=12.5, color="#0A2C51", family="Roboto, sans-serif"),
+        tickfont=dict(color="#475569", family="Roboto, sans-serif"),
         zeroline=False
     )
 
@@ -1415,21 +1410,21 @@ with tab2:
 
     with col_science_1:
         st.markdown("""
-        <div style="background: var(--md-sys-color-surface-container); border: 1px solid var(--md-sys-color-outline-variant); border-radius: 24px; padding: 24px; box-shadow: var(--md-sys-elevation-1);">
-            <div style="font-size: 17px; font-weight: 700; color: var(--md-sys-color-primary); margin-bottom: 14px;">
+        <div style="background: #FFFFFF; border: 1.5px solid #CBD5E1; border-radius: 24px; padding: 26px; box-shadow: var(--theme-elevation-1);">
+            <div style="font-size: 18px; font-weight: 700; color: #0A2C51; margin-bottom: 16px;">
                 為什麼傳統 AVG / ERA 會嚴重落後 10~14 天？
             </div>
-            <div style="margin-bottom: 12px; font-size: 14px; line-height: 1.6; color: var(--md-sys-color-on-surface);">
+            <div style="margin-bottom: 14px; font-size: 14px; line-height: 1.6; color: #0F172A;">
                 <b>1. 視覺神經反饋遲滯 (Visual Reaction Latency, +25ms)</b>：<br>
                 高強度賽季累積下，中樞神經系統 (CNS) 首先疲乏。打者對進壘球種的視知覺辨別延遲增加約 15~25 毫秒。<br>
-                <span style="color: var(--md-sys-color-tertiary); font-weight: 500;">➔ 先行特徵：好壞球辨識力退化，滾動 7 天 <b>O-Swing% (壞球追打率)</b> 劇烈上升 15~20%。</span>
+                <span style="color: #E8383D; font-weight: 700;">➔ 先行特徵：好壞球辨識力退化，滾動 7 天 <b>O-Swing% (壞球追打率)</b> 劇烈上升 15~20%。</span>
             </div>
-            <div style="margin-bottom: 12px; font-size: 14px; line-height: 1.6; color: var(--md-sys-color-on-surface);">
+            <div style="margin-bottom: 14px; font-size: 14px; line-height: 1.6; color: #0F172A;">
                 <b>2. 快縮肌運動單位徵召鈍化 (Motor Unit Firing Rate Decay)</b>：<br>
                 揮棒啟動 (Swing Decision) 與揮棒路徑 (Bat Path Consistency) 微偏 1.5 公分。<br>
-                <span style="color: var(--md-sys-color-tertiary); font-weight: 500;">➔ 先行特徵：即便面對好球帶內紅中球，揮空率 <b>Z-Whiff%</b> 亦異常翻倍；擊球仰角與擊球點失準，<b>HardHit% (強擊率)</b> 崩跌。</span>
+                <span style="color: #1E5AA0; font-weight: 700;">➔ 先行特徵：即便面對好球帶內紅中球，揮空率 <b>Z-Whiff%</b> 亦異常翻倍；擊球仰角與擊球點失準，<b>HardHit% (強擊率)</b> 崩跌。</span>
             </div>
-            <div style="font-size: 14px; line-height: 1.6; color: var(--md-sys-color-on-surface);">
+            <div style="font-size: 14px; line-height: 1.6; color: #0F172A;">
                 <b>3. 落後掩飾效應 (Lag Buffering Effect)</b>：<br>
                 在累積打數龐大時，即使連續 5~8 場擊球品質低下，選手仍可能靠防守失誤或「德州安打」短暫維持打擊率；直至第 12 天前後好運耗盡，傳統成績呈現雪崩式跌幅。
             </div>
@@ -1445,10 +1440,10 @@ with tab2:
             latest_zw = selected_df["roll_zwhiff"].iloc[-1]
             latest_hh = selected_df["roll_hardhit"].iloc[-1]
             
-            os_color = "#BA1A1A" if latest_os > 33 else "#1B6E3E"
-            zw_color = "#BA1A1A" if latest_zw > 16 else "#1B6E3E"
-            hh_color = "#BA1A1A" if latest_hh < 32 else "#1B6E3E"
-            mfi_color = "#BA1A1A" if latest_mfi >= threshold_red else ("#8C5000" if latest_mfi >= threshold_yellow else "#1B6E3E")
+            os_color = "#E8383D" if latest_os > 33 else "#059669"
+            zw_color = "#E8383D" if latest_zw > 16 else "#059669"
+            hh_color = "#E8383D" if latest_hh < 32 else "#059669"
+            mfi_color = "#E8383D" if latest_mfi >= threshold_red else ("#D97706" if latest_mfi >= threshold_yellow else "#059669")
             
             st.markdown(f"""
             <div class="telemetry-card">
@@ -1466,7 +1461,7 @@ with tab2:
                 </div>
                 <div class="telemetry-row total-row">
                     <span>微疲勞指數 (MFI):</span>
-                    <span style="font-size: 18px; font-weight: 700; color: {mfi_color};">{latest_mfi:.1f} / 100</span>
+                    <span style="font-size: 19px; font-weight: 900; color: {mfi_color};">{latest_mfi:.1f} / 100</span>
                 </div>
             </div>
             """, unsafe_allow_html=True)
@@ -1475,10 +1470,10 @@ with tab2:
             latest_velo = selected_df["fastball_velo_kph"].iloc[-1]
             latest_ivb = selected_df["ivb_inch"].iloc[-1]
             
-            disp_color = "#BA1A1A" if latest_disp > 3.0 else "#1B6E3E"
-            velo_color = "#BA1A1A" if latest_velo < 151 else "#1B6E3E"
-            ivb_color = "#BA1A1A" if latest_ivb < 15.5 else "#1B6E3E"
-            mfi_color = "#BA1A1A" if latest_mfi >= threshold_red else ("#8C5000" if latest_mfi >= threshold_yellow else "#1B6E3E")
+            disp_color = "#E8383D" if latest_disp > 3.0 else "#059669"
+            velo_color = "#E8383D" if latest_velo < 151 else "#059669"
+            ivb_color = "#E8383D" if latest_ivb < 15.5 else "#059669"
+            mfi_color = "#E8383D" if latest_mfi >= threshold_red else ("#D97706" if latest_mfi >= threshold_yellow else "#059669")
             
             st.markdown(f"""
             <div class="telemetry-card">
@@ -1496,7 +1491,7 @@ with tab2:
                 </div>
                 <div class="telemetry-row total-row">
                     <span>投手微疲勞指數 (MFI):</span>
-                    <span style="font-size: 18px; font-weight: 700; color: {mfi_color};">{latest_mfi:.1f} / 100</span>
+                    <span style="font-size: 19px; font-weight: 900; color: {mfi_color};">{latest_mfi:.1f} / 100</span>
                 </div>
             </div>
             """, unsafe_allow_html=True)
@@ -1529,36 +1524,36 @@ with tab3:
             fig_sim = go.Figure()
             fig_sim.add_trace(go.Scatter(
                 x=selected_df["game"].tolist(), y=selected_df["cum_avg"].tolist(),
-                name="未介入（放任累積疲勞）", line=dict(color="#BA1A1A", width=2.5, dash="dash")
+                name="未介入（放任累積疲勞）", line=dict(color="#E8383D", width=2.8, dash="dash")
             ))
             fig_sim.add_trace(go.Scatter(
                 x=selected_df["game"].tolist(), y=sim_avg.tolist() if hasattr(sim_avg, "tolist") else list(sim_avg),
-                name="MFEWS 及時介入處方（保全打擊產能）", line=dict(color="#1B6E3E", width=3.2)
+                name="MFEWS 及時介入處方（保全打擊產能）", line=dict(color="#059669", width=3.5)
             ))
             fig_sim.update_layout(
                 template="plotly_white",
-                paper_bgcolor="#FFFBFE",
-                plot_bgcolor="#F3EDF7",
-                font=dict(family="Roboto, sans-serif", color="#1C1B1F"),
-                height=340,
-                margin=dict(l=45, r=20, t=35, b=35),
+                paper_bgcolor="#FFFFFF",
+                plot_bgcolor="#F8FAFC",
+                font=dict(family="Roboto, sans-serif", color="#0F172A"),
+                height=360,
+                margin=dict(l=50, r=25, t=40, b=40),
                 legend=dict(
                     orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1,
-                    font=dict(size=11, family="Roboto, sans-serif", color="#49454F"),
-                    bgcolor="rgba(243, 237, 247, 0.85)", bordercolor="#CAC4D0", borderwidth=1
+                    font=dict(size=11.5, family="Roboto, sans-serif", color="#475569"),
+                    bgcolor="rgba(255, 255, 255, 0.9)", bordercolor="#CBD5E1", borderwidth=1
                 )
             )
             fig_sim.update_yaxes(
-                showgrid=True, gridwidth=1, gridcolor="#E7E0EC",
+                showgrid=True, gridwidth=1, gridcolor="#E2E8F0",
                 title_text="累積打擊率 (AVG)",
-                title_font=dict(size=12, color="#49454F", family="Roboto, sans-serif"),
-                tickfont=dict(color="#49454F", family="Roboto, sans-serif")
+                title_font=dict(size=12, color="#0A2C51", family="Roboto, sans-serif"),
+                tickfont=dict(color="#475569", family="Roboto, sans-serif")
             )
             fig_sim.update_xaxes(
-                showgrid=True, gridwidth=1, gridcolor="#E7E0EC",
+                showgrid=True, gridwidth=1, gridcolor="#E2E8F0",
                 title_text="賽季場次 (Game)",
-                title_font=dict(size=12, color="#49454F", family="Roboto, sans-serif"),
-                tickfont=dict(color="#49454F", family="Roboto, sans-serif")
+                title_font=dict(size=12, color="#0A2C51", family="Roboto, sans-serif"),
+                tickfont=dict(color="#475569", family="Roboto, sans-serif")
             )
             
             st.plotly_chart(fig_sim, use_container_width=True)
@@ -1581,36 +1576,36 @@ with tab3:
             fig_sim = go.Figure()
             fig_sim.add_trace(go.Scatter(
                 x=selected_df["game"].tolist(), y=selected_df["cum_era"].tolist(),
-                name="未介入（放任累積疲勞）", line=dict(color="#BA1A1A", width=2.5, dash="dash")
+                name="未介入（放任累積疲勞）", line=dict(color="#E8383D", width=2.8, dash="dash")
             ))
             fig_sim.add_trace(go.Scatter(
                 x=selected_df["game"].tolist(), y=sim_era.tolist() if hasattr(sim_era, "tolist") else list(sim_era),
-                name="MFEWS 及時跳過輪值處方（保全防禦率）", line=dict(color="#1B6E3E", width=3.2)
+                name="MFEWS 及時跳過輪值處方（保全防禦率）", line=dict(color="#059669", width=3.5)
             ))
             fig_sim.update_layout(
                 template="plotly_white",
-                paper_bgcolor="#FFFBFE",
-                plot_bgcolor="#F3EDF7",
-                font=dict(family="Roboto, sans-serif", color="#1C1B1F"),
-                height=340,
-                margin=dict(l=45, r=20, t=35, b=35),
+                paper_bgcolor="#FFFFFF",
+                plot_bgcolor="#F8FAFC",
+                font=dict(family="Roboto, sans-serif", color="#0F172A"),
+                height=360,
+                margin=dict(l=50, r=25, t=40, b=40),
                 legend=dict(
                     orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1,
-                    font=dict(size=11, family="Roboto, sans-serif", color="#49454F"),
-                    bgcolor="rgba(243, 237, 247, 0.85)", bordercolor="#CAC4D0", borderwidth=1
+                    font=dict(size=11.5, family="Roboto, sans-serif", color="#475569"),
+                    bgcolor="rgba(255, 255, 255, 0.9)", bordercolor="#CBD5E1", borderwidth=1
                 )
             )
             fig_sim.update_yaxes(
-                showgrid=True, gridwidth=1, gridcolor="#E7E0EC",
+                showgrid=True, gridwidth=1, gridcolor="#E2E8F0",
                 title_text="累積防禦率 (ERA)",
-                title_font=dict(size=12, color="#49454F", family="Roboto, sans-serif"),
-                tickfont=dict(color="#49454F", family="Roboto, sans-serif")
+                title_font=dict(size=12, color="#0A2C51", family="Roboto, sans-serif"),
+                tickfont=dict(color="#475569", family="Roboto, sans-serif")
             )
             fig_sim.update_xaxes(
-                showgrid=True, gridwidth=1, gridcolor="#E7E0EC",
+                showgrid=True, gridwidth=1, gridcolor="#E2E8F0",
                 title_text="賽季場次 (Game)",
-                title_font=dict(size=12, color="#49454F", family="Roboto, sans-serif"),
-                tickfont=dict(color="#49454F", family="Roboto, sans-serif")
+                title_font=dict(size=12, color="#0A2C51", family="Roboto, sans-serif"),
+                tickfont=dict(color="#475569", family="Roboto, sans-serif")
             )
             
             st.plotly_chart(fig_sim, use_container_width=True)
@@ -1657,7 +1652,7 @@ with tab4:
             • <b>正常先發</b>：可完全維持常規守備與第 1~3 棒主力進攻戰術授權。<br>
             • <b>持續追蹤</b>：每週一例行性檢測 MFI 趨勢。
             """
-        st.markdown(render_md3_action_card(t_text, b_text, variant), unsafe_allow_html=True)
+        st.markdown(render_theme_action_card(t_text, b_text, variant), unsafe_allow_html=True)
 
     with act_col2:
         if curr_player_mfi >= threshold_red:
@@ -1682,7 +1677,7 @@ with tab4:
             • <b>常態化課表</b>：按選手個人週期化重訓課表執行即可。<br>
             • <b>神經啟動</b>：賽前常規 15 分鐘速度敏捷繩梯與快縮肌啟動。
             """
-        st.markdown(render_md3_action_card(t_text2, b_text2, variant), unsafe_allow_html=True)
+        st.markdown(render_theme_action_card(t_text2, b_text2, variant), unsafe_allow_html=True)
 
     with act_col3:
         if curr_player_mfi >= threshold_red:
@@ -1707,10 +1702,9 @@ with tab4:
             • <b>例行保養</b>：常態性賽後肩關節/手肘冰熱敷交替與軟組織滾筒放鬆。<br>
             • <b>睡眠品質良好</b>：心率變異度與肌肉張力指數維持於標準綠燈區間。
             """
-        st.markdown(render_md3_action_card(t_text3, b_text3, variant), unsafe_allow_html=True)
+        st.markdown(render_theme_action_card(t_text3, b_text3, variant), unsafe_allow_html=True)
 
     st.write("")
-    # 一鍵匯出處方箋報告 (純文字 / CSV 格式)
     clean_b_text = b_text.replace("<b>", "").replace("</b>", "").replace("<br>", "\n   ")
     clean_b_text2 = b_text2.replace("<b>", "").replace("</b>", "").replace("<br>", "\n   ")
     clean_b_text3 = b_text3.replace("<b>", "").replace("</b>", "").replace("<br>", "\n   ")
@@ -1746,11 +1740,11 @@ with tab4:
 st.write("")
 
 # =============================================================================
-# 7. 頁尾資訊與黑客松宣告
+# 7. 頁尾資訊與版權宣告 (© NTUT IAE. All rights reserved.)
 # =============================================================================
 st.markdown("""
 <div class="mfews-footer">
     2026 野革盃台灣棒球數據黑客松參賽專案 · Micro-Fatigue Early Warning System (MFEWS)<br>
-    Google Material You (Material Design 3) 現代運動科學戰情介面 · 純前端 WebAssembly 支援免伺服器部署
+    © NTUT IAE. All rights reserved.
 </div>
 """, unsafe_allow_html=True)
