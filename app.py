@@ -118,7 +118,7 @@ def render_theme_action_card(title: str, body: str, variant: str = "info") -> st
     """
 
 # =============================================================================
-# 1. 頁面基礎設定與全域 CSS (移除頂部白色橫條與三個點、修復滑桿跳動、套用藍白紅)
+# 1. 頁面基礎設定與全域 CSS
 # =============================================================================
 st.set_page_config(
     page_title="MFEWS | 賽季微疲勞先行指標預警系統",
@@ -126,10 +126,6 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
-
-# 初始化 Session State
-if "selected_player" not in st.session_state:
-    st.session_state["selected_player"] = "陳傑憲"
 
 # 注入藍白紅全域視覺與 Streamlit 元件修復 CSS
 st.markdown("""
@@ -222,7 +218,7 @@ st.markdown("""
         max-width: 1440px !important;
     }
 
-    /* 戰情頂部標題列 (藍白紅經典漸層氛圍) */
+    /* 戰情頂部標題列 (藍白紅經典氛圍) */
     .war-room-header-wrapper {
         position: relative;
         overflow: hidden;
@@ -260,9 +256,9 @@ st.markdown("""
     .md-blob-3 {
         width: 200px;
         height: 200px;
-        background: radial-gradient(circle, rgba(30, 90, 160, 0.15) 0%, rgba(248, 249, 250, 0) 70%);
-        top: -20px;
-        left: -30px;
+        background: radial-gradient(circle, rgba(30, 90, 160, 0.14) 0%, rgba(226, 236, 248, 0.02) 70%);
+        top: 20px;
+        left: 5%;
     }
 
     .war-room-header {
@@ -305,9 +301,8 @@ st.markdown("""
     }
 
     .kpi-label {
-        font-size: 12px;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
+        font-size: 12.5px;
+        letter-spacing: 0.02em;
         color: var(--theme-color-on-surface-variant);
         font-weight: 700;
         margin-bottom: 8px;
@@ -360,7 +355,7 @@ st.markdown("""
     }
 
     .badge-tonal {
-        background-color: var(--theme-color-primary-container);
+        background-color: var(--theme-color-primary_container);
         color: var(--theme-color-primary);
         border: 1px solid rgba(10, 44, 81, 0.2);
     }
@@ -368,35 +363,50 @@ st.markdown("""
     .badge-primary {
         background-color: var(--theme-color-primary);
         color: var(--theme-color-on-primary);
+        box-shadow: 0 2px 6px rgba(10, 44, 81, 0.25);
     }
 
     @keyframes rb-pulse-red {
-        0% { box-shadow: 0 0 0 0 rgba(232, 56, 61, 0.35); }
-        70% { box-shadow: 0 0 0 6px rgba(232, 56, 61, 0); }
+        0% { box-shadow: 0 0 0 0 rgba(232, 56, 61, 0.45); }
+        70% { box-shadow: 0 0 0 9px rgba(232, 56, 61, 0); }
         100% { box-shadow: 0 0 0 0 rgba(232, 56, 61, 0); }
     }
 
-    /* 球員監控卡片 */
+    /* 球員卡容器與卡片基礎造型 */
     .player-card {
         background: var(--theme-color-surface-container);
-        border: 1.5px solid var(--theme-color-outline-variant);
-        border-radius: 20px;
-        padding: 14px 10px;
+        border: 2px solid var(--theme-color-outline-variant);
+        border-radius: var(--theme-shape-md);
+        padding: 16px 10px;
         text-align: center;
         box-shadow: var(--theme-elevation-1);
-        transition: all 0.2s ease;
-        margin-bottom: 6px;
+        transition: all 0.22s ease;
+        min-height: 114px;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .player-card.player-card-active {
+        border-color: var(--theme-color-primary) !important;
+        background-color: var(--theme-color-primary-container) !important;
+        box-shadow: 0 4px 14px rgba(10, 44, 81, 0.22) !important;
+        transform: translateY(-2px);
     }
 
     .player-card:hover {
-        transform: translateY(-2px);
-        box-shadow: var(--theme-elevation-2);
+        transform: translateY(-4px);
+        box-shadow: 0 6px 18px rgba(10, 44, 81, 0.16);
         border-color: var(--theme-color-primary);
     }
 
     .player-name {
         font-size: 16px;
-        font-weight: 700;
+        font-weight: 800;
         color: var(--theme-color-primary);
         margin-bottom: 2px;
     }
@@ -405,6 +415,36 @@ st.markdown("""
         font-size: 11.5px;
         color: var(--theme-color-on-surface-variant);
         margin-bottom: 8px;
+    }
+
+    /* 將按鈕化為隱形全覆蓋層，覆蓋於整張卡片上方，實現直接點擊卡片即可切換 */
+    div[data-testid="column"]:has(.player-card) {
+        position: relative !important;
+    }
+
+    div[data-testid="column"]:has(.player-card) .stButton {
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        z-index: 10 !important;
+    }
+
+    div[data-testid="column"]:has(.player-card) .stButton > button {
+        width: 100% !important;
+        height: 100% !important;
+        min-height: 114px !important;
+        opacity: 0 !important;
+        background: transparent !important;
+        border: none !important;
+        cursor: pointer !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        font-size: 0 !important;
+        box-shadow: none !important;
     }
 
     /* 建議行動處方卡 (左邊條顏色) */
@@ -478,25 +518,20 @@ st.markdown("""
         border-top: 1.5px solid var(--theme-color-outline-variant);
         padding-top: 12px;
         margin-top: 10px;
-        margin-bottom: 0;
         font-weight: 700;
-        color: var(--theme-color-on-surface);
+        font-size: 15px;
+        color: var(--theme-color-primary);
     }
 
-    /* 模擬介入效益卡 */
-    .benefit-callout {
+    .telemetry-badge {
+        font-weight: 700;
+        padding: 3px 10px;
+        border-radius: 9999px;
+        font-size: 12.5px;
+    }
+
+    .telemetry-badge.badge-safe {
         background: var(--theme-color-success-container);
-        color: var(--theme-color-on-success-container);
-        border: 1.5px solid rgba(5, 150, 105, 0.3);
-        border-radius: 20px;
-        padding: 20px 24px;
-        margin-top: 16px;
-        font-size: 14px;
-        line-height: 1.6;
-        box-shadow: var(--theme-elevation-1);
-    }
-
-    .benefit-callout b {
         color: var(--theme-color-on-success-container);
     }
 
@@ -585,23 +620,20 @@ st.markdown("""
         color: var(--theme-color-primary) !important;
     }
 
-    /* 滑桿 (Slider) - 解決滑鼠懸停跳動問題 (移除 scale，採用平穩 halo shadow) */
+    /* 滑桿 (Slider) - 圓點平滑跟隨滑鼠移動，懸停光環平穩無抖動 (不覆蓋 transform) */
     div[data-testid="stSlider"] div[role="slider"] {
         background-color: var(--theme-color-primary) !important;
         border: 2px solid #FFFFFF !important;
         box-shadow: 0 1px 4px rgba(10, 44, 81, 0.3) !important;
         transition: box-shadow 0.2s ease, background-color 0.2s ease !important;
-        transform: none !important;
     }
 
     div[data-testid="stSlider"] div[role="slider"]:hover {
         box-shadow: 0 0 0 6px rgba(10, 44, 81, 0.15) !important;
-        transform: none !important;
     }
 
     div[data-testid="stSlider"] div[role="slider"]:active {
         box-shadow: 0 0 0 8px rgba(10, 44, 81, 0.25) !important;
-        transform: none !important;
     }
 
     /* 開關 (Toggle Switch) */
@@ -613,49 +645,110 @@ st.markdown("""
 
     /* 按鈕 (Buttons - 經典深海軍藍藥丸型) */
     .stButton > button {
-        border-radius: 9999px !important;
         background-color: var(--theme-color-primary) !important;
         color: #FFFFFF !important;
+        border-radius: var(--theme-shape-full) !important;
         border: none !important;
-        padding: 8px 20px !important;
+        padding: 10px 24px !important;
         font-weight: 700 !important;
         font-size: 13.5px !important;
+        transition: all 0.2s cubic-bezier(0.2, 0, 0, 1) !important;
         box-shadow: var(--theme-elevation-1) !important;
-        transition: all 0.2s ease !important;
     }
 
     .stButton > button:hover {
-        background-color: var(--theme-color-accent-blue) !important;
+        background-color: #153E6B !important;
         box-shadow: var(--theme-elevation-2) !important;
         transform: translateY(-1px) !important;
     }
 
     .stButton > button:active {
         transform: scale(0.97) !important;
-        background-color: #061D36 !important;
     }
 
-    /* 頁尾資訊列 */
-    .mfews-footer {
-        border-top: 1.5px solid var(--theme-color-outline-variant);
-        padding-top: 24px;
-        margin-top: 40px;
+    /* 下載按鈕 (Download Button) */
+    .stDownloadButton > button {
+        background: linear-gradient(135deg, #0A2C51 0%, #153E6B 100%) !important;
+        color: #FFFFFF !important;
+        border-radius: var(--theme-shape-full) !important;
+        border: none !important;
+        padding: 12px 28px !important;
+        font-weight: 700 !important;
+        font-size: 14px !important;
+        box-shadow: var(--theme-elevation-2) !important;
+        transition: all 0.2s ease !important;
+    }
+
+    .stDownloadButton > button:hover {
+        background: linear-gradient(135deg, #153E6B 0%, #1E5AA0 100%) !important;
+        box-shadow: var(--theme-elevation-3) !important;
+        transform: translateY(-2px) !important;
+    }
+
+    /* 診斷表格樣式 (防止文字重疊，寬敞易讀) */
+    .diag-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        border-radius: 14px;
+        overflow: hidden;
+        border: 1.5px solid var(--theme-color-outline-variant);
+        background: #FFFFFF;
+    }
+
+    .diag-table th {
+        background: var(--theme-color-primary);
+        color: #FFFFFF;
+        padding: 12px 14px;
+        font-size: 13px;
+        font-weight: 700;
         text-align: center;
+        white-space: nowrap;
+        letter-spacing: 0.02em;
+    }
+
+    .diag-table td {
+        padding: 10px 14px;
+        font-size: 13px;
+        color: var(--theme-color-on-surface);
+        border-bottom: 1px solid var(--theme-color-outline-variant);
+        text-align: center;
+        white-space: nowrap;
+    }
+
+    .diag-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .diag-table tr:nth-child(even) {
+        background-color: var(--theme-color-surface);
+    }
+
+    .diag-table tr:hover {
+        background-color: var(--theme-color-primary-container);
+    }
+
+    /* 頁尾 */
+    .mfews-footer {
+        text-align: center;
+        padding: 30px 20px 10px 20px;
         color: var(--theme-color-on-surface-variant);
         font-size: 13px;
+        border-top: 1.5px solid var(--theme-color-outline-variant);
+        margin-top: 40px;
         line-height: 1.6;
     }
 </style>
 """, unsafe_allow_html=True)
 
 # =============================================================================
-# 2. 棒球微疲勞先行特徵模擬引擎 (Mock Data Generator)
+# 2. 棒球微疲勞先行特徵模擬引擎 (CPBL 6 隊一軍球員資料庫，預設味全龍)
 # =============================================================================
 @st.cache_data
 def generate_baseball_season_data():
     """
-    產生 6 位球員（4 打者、2 投手）全季 115 場賽事的微觀運動學與好球帶決策特徵數據。
-    特別設計「陳傑憲」於第 46~58 場先行指標嚴重惡化，但累積打擊率直至第 58~60 場才暴跌的 12 天時差案例。
+    產生中華職棒 6 球團共 36 位代表性一軍主力球員（打者與投手）全季 115 場賽事的微觀運動學特徵數據。
+    預設球隊為「味全龍」，包含當家球星吉力吉撈．鞏冠、李凱威、劉基鴻、郭天信、徐若熙、陳冠偉等一軍名單。
     """
     np.random.seed(42)
     start_date = datetime(2026, 4, 1)
@@ -665,267 +758,223 @@ def generate_baseball_season_data():
     
     players_data = {}
     
-    # -------------------------------------------------------------------------
-    # 球員 1: 陳傑憲 (CF/OF) - 典型微疲勞時差展示案例 (Golden Window Lead Time Case)
-    # -------------------------------------------------------------------------
-    base_oswing = 0.22
-    base_zwhiff = 0.085
-    base_hardhit = 0.41
-    
-    fatigue_curve_cjh = np.zeros(games_count)
-    for i, g in enumerate(game_numbers):
-        if 46 <= g <= 58:
-            fatigue_curve_cjh[i] = 1.0 / (1.0 + np.exp(-(g - 47) * 0.8))
-        elif 59 <= g <= 68:
-            fatigue_curve_cjh[i] = max(0.0, 1.0 - (g - 58) * 0.1)
-        else:
-            fatigue_curve_cjh[i] = 0.05 * np.sin(g / 8.0)
-            
-    fatigue_curve_cjh = np.clip(fatigue_curve_cjh, 0.0, 1.0)
-    
-    daily_oswing = base_oswing + fatigue_curve_cjh * 0.19 + np.random.normal(0, 0.03, games_count)
-    daily_zwhiff = base_zwhiff + fatigue_curve_cjh * 0.14 + np.random.normal(0, 0.02, games_count)
-    daily_hardhit = base_hardhit - fatigue_curve_cjh * 0.18 + np.random.normal(0, 0.04, games_count)
-    
-    roll_oswing = pd.Series(daily_oswing).rolling(7, min_periods=1).mean().values
-    roll_zwhiff = pd.Series(daily_zwhiff).rolling(7, min_periods=1).mean().values
-    roll_hardhit = pd.Series(daily_hardhit).rolling(7, min_periods=1).mean().values
-    
-    s_oswing = np.clip((roll_oswing - 0.20) / (0.42 - 0.20), 0.0, 1.0) * 100
-    s_zwhiff = np.clip((roll_zwhiff - 0.07) / (0.24 - 0.07), 0.0, 1.0) * 100
-    s_hardhit = np.clip((0.45 - roll_hardhit) / (0.45 - 0.22), 0.0, 1.0) * 100
-    mfi_cjh = 0.40 * s_oswing + 0.35 * s_zwhiff + 0.25 * s_hardhit
-    mfi_cjh = np.clip(mfi_cjh + np.random.normal(0, 1.5, games_count), 15, 95)
-    
-    ab_per_game = np.random.choice([3, 4, 4, 5], size=games_count)
-    hits_per_game = []
-    for i, g in enumerate(game_numbers):
-        ab = ab_per_game[i]
-        if g < 46:
-            p_hit = 0.355
-        elif 46 <= g <= 55:
-            p_hit = 0.300
-        elif 56 <= g <= 68:
-            p_hit = 0.110
-        elif 69 <= g <= 85:
-            p_hit = 0.270
-        else:
-            p_hit = 0.340
-        hits = np.random.binomial(ab, p_hit)
-        hits_per_game.append(hits)
+    def create_batter_data(name, team, pos, base_os, base_zw, base_hh, f_start, f_end, base_avg):
+        fatigue = np.zeros(games_count)
+        if f_start < 900:
+            for i, g in enumerate(game_numbers):
+                if f_start <= g <= f_end:
+                    fatigue[i] = 1.0 / (1.0 + np.exp(-(g - f_start - 2) * 0.7))
+                elif f_end < g <= f_end + 10:
+                    fatigue[i] = max(0.0, 1.0 - (g - f_end) * 0.1)
+                else:
+                    fatigue[i] = 0.05 * np.sin(g / 8.0)
+        fatigue = np.clip(fatigue, 0.0, 1.0)
         
-    cum_ab = np.cumsum(ab_per_game)
-    cum_hits = np.cumsum(hits_per_game)
-    cum_avg_cjh = cum_hits / cum_ab
-    
-    players_data["陳傑憲"] = pd.DataFrame({
-        "game": game_numbers,
-        "date": dates,
-        "player": "陳傑憲",
-        "pos": "CF / 外野手",
-        "role_type": "打者",
-        "roll_oswing": roll_oswing * 100,
-        "roll_zwhiff": roll_zwhiff * 100,
-        "roll_hardhit": roll_hardhit * 100,
-        "cum_avg": np.round(cum_avg_cjh, 3),
-        "cum_era": np.nan,
-        "mfi": np.round(mfi_cjh, 1),
-        "warning_lead_days": 12,
-        "status_now": "🔴 高風險 (MFI 76.4)",
-        "fatigue_phase_start": 48,
-        "performance_crash_point": 60,
-    })
-    
-    # -------------------------------------------------------------------------
-    # 球員 2: 林立 (2B/DH) - 輕度疲勞及時透過 DH 輪替介入回穩案例
-    # -------------------------------------------------------------------------
-    fatigue_ll = np.zeros(games_count)
-    for i, g in enumerate(game_numbers):
-        if 72 <= g <= 80:
-            fatigue_ll[i] = 0.65
-        else:
-            fatigue_ll[i] = 0.15
-    roll_oswing_ll = (0.27 + fatigue_ll * 0.10 + np.random.normal(0, 0.015, games_count)) * 100
-    roll_zwhiff_ll = (0.13 + fatigue_ll * 0.07 + np.random.normal(0, 0.012, games_count)) * 100
-    roll_hardhit_ll = (0.47 - fatigue_ll * 0.12 + np.random.normal(0, 0.02, games_count)) * 100
-    mfi_ll = 0.40 * (roll_oswing_ll - 20) * 3.5 + 0.35 * (roll_zwhiff_ll - 10) * 4.5 + 0.25 * (50 - roll_hardhit_ll) * 3.0
-    mfi_ll = np.clip(mfi_ll, 20, 85)
-    
-    cum_avg_ll = 0.325 + 0.015 * np.sin(game_numbers / 10.0) - (game_numbers > 75) * 0.012
-    players_data["林立"] = pd.DataFrame({
-        "game": game_numbers,
-        "date": dates,
-        "player": "林立",
-        "pos": "2B / 內野手",
-        "role_type": "打者",
-        "roll_oswing": roll_oswing_ll,
-        "roll_zwhiff": roll_zwhiff_ll,
-        "roll_hardhit": roll_hardhit_ll,
-        "cum_avg": np.round(cum_avg_ll, 3),
-        "cum_era": np.nan,
-        "mfi": np.round(mfi_ll, 1),
-        "warning_lead_days": 11,
-        "status_now": "🟡 觀察期 (MFI 62.8)",
-        "fatigue_phase_start": 72,
-        "performance_crash_point": 84,
-    })
-    
-    # -------------------------------------------------------------------------
-    # 球員 3: 吉力吉撈·鞏冠 (C/DH) - 捕手蹲捕負擔導致下肢發力減損
-    # -------------------------------------------------------------------------
-    fatigue_gili = np.zeros(games_count)
-    for i, g in enumerate(game_numbers):
-        if 62 <= g <= 74:
-            fatigue_gili[i] = 0.90
-        else:
-            fatigue_gili[i] = 0.25
-    roll_oswing_gili = (0.31 + fatigue_gili * 0.12 + np.random.normal(0, 0.02, games_count)) * 100
-    roll_zwhiff_gili = (0.16 + fatigue_gili * 0.09 + np.random.normal(0, 0.015, games_count)) * 100
-    roll_hardhit_gili = (0.48 - fatigue_gili * 0.20 + np.random.normal(0, 0.025, games_count)) * 100
-    mfi_gili = np.clip(35 + fatigue_gili * 48 + np.random.normal(0, 2, games_count), 25, 92)
-    cum_avg_gili = 0.285 - (game_numbers > 70) * 0.035 + np.random.normal(0, 0.005, games_count)
-    players_data["吉力吉撈·鞏冠"] = pd.DataFrame({
-        "game": game_numbers,
-        "date": dates,
-        "player": "吉力吉撈·鞏冠",
-        "pos": "C / 捕手",
-        "role_type": "打者",
-        "roll_oswing": roll_oswing_gili,
-        "roll_zwhiff": roll_zwhiff_gili,
-        "roll_hardhit": roll_hardhit_gili,
-        "cum_avg": np.round(cum_avg_gili, 3),
-        "cum_era": np.nan,
-        "mfi": np.round(mfi_gili, 1),
-        "warning_lead_days": 14,
-        "status_now": "🔴 高風險 (MFI 78.9)",
-        "fatigue_phase_start": 62,
-        "performance_crash_point": 76,
-    })
-    
-    # -------------------------------------------------------------------------
-    # 球員 4: 江坤宇 (SS) - 體能調節模範生，整季維持低微疲勞
-    # -------------------------------------------------------------------------
-    mfi_jky = 32.0 + 8.0 * np.sin(game_numbers / 7.0) + np.random.normal(0, 2.5, games_count)
-    mfi_jky = np.clip(mfi_jky, 18, 52)
-    cum_avg_jky = 0.315 + 0.01 * np.cos(game_numbers / 12.0)
-    players_data["江坤宇"] = pd.DataFrame({
-        "game": game_numbers,
-        "date": dates,
-        "player": "江坤宇",
-        "pos": "SS / 游擊手",
-        "role_type": "打者",
-        "roll_oswing": 23.5 + np.random.normal(0, 1.2, games_count),
-        "roll_zwhiff": 9.2 + np.random.normal(0, 0.8, games_count),
-        "roll_hardhit": 34.5 + np.random.normal(0, 1.5, games_count),
-        "cum_avg": np.round(cum_avg_jky, 3),
-        "cum_era": np.nan,
-        "mfi": np.round(mfi_jky, 1),
-        "warning_lead_days": 13,
-        "status_now": "🟢 正常 (MFI 36.2)",
-        "fatigue_phase_start": 999,
-        "performance_crash_point": 999,
-    })
-    
-    # -------------------------------------------------------------------------
-    # 球員 5: 古林睿煬 (SP) - 先發投手微運動學疲勞：出手點 3D 空間離散度增大
-    # -------------------------------------------------------------------------
-    pitch_fatigue_gl = np.zeros(games_count)
-    for i, g in enumerate(game_numbers):
-        if 70 <= g <= 82:
-            pitch_fatigue_gl[i] = 0.85
-        else:
-            pitch_fatigue_gl[i] = 0.12
-            
-    rel_disp = 1.8 + pitch_fatigue_gl * 2.8 + np.random.normal(0, 0.25, games_count)
-    fastball_velo = 153.5 - pitch_fatigue_gl * 4.4 + np.random.normal(0, 0.4, games_count)
-    ivb = 17.5 - pitch_fatigue_gl * 3.0 + np.random.normal(0, 0.3, games_count)
-    
-    s_rel = np.clip((rel_disp - 1.5) / (4.5 - 1.5), 0, 1) * 100
-    s_velo = np.clip((154.0 - fastball_velo) / (154.0 - 148.5), 0, 1) * 100
-    s_ivb = np.clip((18.0 - ivb) / (18.0 - 14.0), 0, 1) * 100
-    mfi_gl = 0.40 * s_rel + 0.35 * s_velo + 0.25 * s_ivb
-    mfi_gl = np.clip(mfi_gl, 18, 92)
-    
-    cum_era_gl = 2.05 + (game_numbers > 78) * 1.25 + np.random.normal(0, 0.08, games_count)
-    players_data["古林睿煬"] = pd.DataFrame({
-        "game": game_numbers,
-        "date": dates,
-        "player": "古林睿煬",
-        "pos": "SP / 先發投手",
-        "role_type": "投手",
-        "rel_disp_cm": np.round(rel_disp, 2),
-        "fastball_velo_kph": np.round(fastball_velo, 1),
-        "ivb_inch": np.round(ivb, 1),
-        "roll_oswing": np.nan,
-        "roll_zwhiff": np.nan,
-        "roll_hardhit": np.nan,
-        "cum_avg": np.nan,
-        "cum_era": np.round(cum_era_gl, 2),
-        "mfi": np.round(mfi_gl, 1),
-        "warning_lead_days": 13,
-        "status_now": "🔴 高風險 (MFI 77.2)",
-        "fatigue_phase_start": 70,
-        "performance_crash_point": 82,
-    })
-    
-    # -------------------------------------------------------------------------
-    # 球員 6: 徐若熙 (SP) - 手肘與核心疲勞監控良好案例
-    # -------------------------------------------------------------------------
-    mfi_srh = 41.0 + 12.0 * np.sin(game_numbers / 9.0) + np.random.normal(0, 3.0, games_count)
-    mfi_srh = np.clip(mfi_srh, 22, 64)
-    cum_era_srh = 2.20 + 0.15 * np.sin(game_numbers / 14.0)
-    players_data["徐若熙"] = pd.DataFrame({
-        "game": game_numbers,
-        "date": dates,
-        "player": "徐若熙",
-        "pos": "SP / 先發投手",
-        "role_type": "投手",
-        "rel_disp_cm": np.round(1.9 + np.random.normal(0, 0.2, games_count), 2),
-        "fastball_velo_kph": np.round(152.8 + np.random.normal(0, 0.4, games_count), 1),
-        "ivb_inch": np.round(17.2 + np.random.normal(0, 0.25, games_count), 1),
-        "roll_oswing": np.nan,
-        "roll_zwhiff": np.nan,
-        "roll_hardhit": np.nan,
-        "cum_avg": np.nan,
-        "cum_era": np.round(cum_era_srh, 2),
-        "mfi": np.round(mfi_srh, 1),
-        "warning_lead_days": 10,
-        "status_now": "🟢 正常 (MFI 44.5)",
-        "fatigue_phase_start": 999,
-        "performance_crash_point": 999,
-    })
-    
+        roll_os = pd.Series(base_os + fatigue * 0.16 + np.random.normal(0, 0.02, games_count)).rolling(7, min_periods=1).mean().values * 100
+        roll_zw = pd.Series(base_zw + fatigue * 0.12 + np.random.normal(0, 0.015, games_count)).rolling(7, min_periods=1).mean().values * 100
+        roll_hh = pd.Series(base_hh - fatigue * 0.16 + np.random.normal(0, 0.025, games_count)).rolling(7, min_periods=1).mean().values * 100
+        
+        s_os = np.clip((roll_os - 20) / (42 - 20), 0, 1) * 100
+        s_zw = np.clip((roll_zw - 7) / (24 - 7), 0, 1) * 100
+        s_hh = np.clip((45 - roll_hh) / (45 - 22), 0, 1) * 100
+        mfi = np.clip(0.4 * s_os + 0.35 * s_zw + 0.25 * s_hh + np.random.normal(0, 1.2, games_count), 15, 95)
+        
+        ab_per_game = np.random.choice([3, 4, 4, 5], size=games_count)
+        hits_per_game = []
+        for i, g in enumerate(game_numbers):
+            ab = ab_per_game[i]
+            p_hit = base_avg - (0.18 if (f_start + 10 <= g <= f_end + 12 and f_start < 900) else 0.0)
+            p_hit = max(0.08, p_hit)
+            hits_per_game.append(np.random.binomial(ab, p_hit))
+        cum_avg = np.cumsum(hits_per_game) / np.cumsum(ab_per_game)
+        
+        latest_mfi = mfi[-1]
+        status = "🔴 高風險" if latest_mfi >= 70 else ("🟡 觀察期" if latest_mfi >= 50 else "🟢 正常")
+        
+        return pd.DataFrame({
+            "game": game_numbers,
+            "date": dates,
+            "team": team,
+            "roster": "一軍名單",
+            "player": name,
+            "pos": pos,
+            "role_type": "打者",
+            "roll_oswing": np.round(roll_os, 1),
+            "roll_zwhiff": np.round(roll_zw, 1),
+            "roll_hardhit": np.round(roll_hh, 1),
+            "cum_avg": np.round(cum_avg, 3),
+            "cum_era": np.nan,
+            "mfi": np.round(mfi, 1),
+            "warning_lead_days": 12 if f_start < 900 else 10,
+            "status_now": f"{status} (MFI {latest_mfi:.1f})",
+            "fatigue_phase_start": f_start,
+            "performance_crash_point": f_end if f_start < 900 else 999,
+        })
+
+    def create_pitcher_data(name, team, pos, base_disp, base_velo, base_ivb, f_start, f_end, base_era):
+        fatigue = np.zeros(games_count)
+        if f_start < 900:
+            for i, g in enumerate(game_numbers):
+                if f_start <= g <= f_end:
+                    fatigue[i] = 1.0 / (1.0 + np.exp(-(g - f_start - 2) * 0.7))
+                elif f_end < g <= f_end + 10:
+                    fatigue[i] = max(0.0, 1.0 - (g - f_end) * 0.1)
+                else:
+                    fatigue[i] = 0.05 * np.sin(g / 8.0)
+        fatigue = np.clip(fatigue, 0.0, 1.0)
+        
+        disp = base_disp + fatigue * 2.5 + np.random.normal(0, 0.2, games_count)
+        velo = base_velo - fatigue * 4.2 + np.random.normal(0, 0.35, games_count)
+        ivb = base_ivb - fatigue * 2.8 + np.random.normal(0, 0.25, games_count)
+        
+        s_rel = np.clip((disp - 1.5) / (4.5 - 1.5), 0, 1) * 100
+        s_velo = np.clip((154.0 - velo) / (154.0 - 148.5), 0, 1) * 100
+        s_ivb = np.clip((18.0 - ivb) / (18.0 - 14.0), 0, 1) * 100
+        mfi = np.clip(0.40 * s_rel + 0.35 * s_velo + 0.25 * s_ivb + np.random.normal(0, 1.5, games_count), 18, 92)
+        
+        cum_era = base_era + (game_numbers > (f_start + 10 if f_start < 900 else 999)) * 1.35 + np.random.normal(0, 0.08, games_count)
+        cum_era = np.clip(cum_era, 1.2, 7.5)
+        
+        latest_mfi = mfi[-1]
+        status = "🔴 高風險" if latest_mfi >= 70 else ("🟡 觀察期" if latest_mfi >= 50 else "🟢 正常")
+        
+        return pd.DataFrame({
+            "game": game_numbers,
+            "date": dates,
+            "team": team,
+            "roster": "一軍名單",
+            "player": name,
+            "pos": pos,
+            "role_type": "投手",
+            "rel_disp_cm": np.round(disp, 2),
+            "fastball_velo_kph": np.round(velo, 1),
+            "ivb_inch": np.round(ivb, 1),
+            "roll_oswing": np.nan,
+            "roll_zwhiff": np.nan,
+            "roll_hardhit": np.nan,
+            "cum_avg": np.nan,
+            "cum_era": np.round(cum_era, 2),
+            "mfi": np.round(mfi, 1),
+            "warning_lead_days": 13 if f_start < 900 else 10,
+            "status_now": f"{status} (MFI {latest_mfi:.1f})",
+            "fatigue_phase_start": f_start,
+            "performance_crash_point": f_end if f_start < 900 else 999,
+        })
+
+    # 1. 味全龍 (Wei Chuan Dragons) - 預設球隊
+    players_data["吉力吉撈．鞏冠"] = create_batter_data("吉力吉撈．鞏冠", "味全龍", "C / 捕手", 0.30, 0.15, 0.46, 62, 76, 0.295)
+    players_data["李凱威"] = create_batter_data("李凱威", "味全龍", "2B / 內野手", 0.22, 0.08, 0.38, 999, 999, 0.312)
+    players_data["劉基鴻"] = create_batter_data("劉基鴻", "味全龍", "3B / 內野手", 0.28, 0.14, 0.44, 52, 66, 0.282)
+    players_data["郭天信"] = create_batter_data("郭天信", "味全龍", "CF / 外野手", 0.26, 0.11, 0.39, 74, 86, 0.298)
+    players_data["徐若熙"] = create_pitcher_data("徐若熙", "味全龍", "SP / 先發投手", 1.8, 153.2, 17.5, 999, 999, 2.15)
+    players_data["陳冠偉"] = create_pitcher_data("陳冠偉", "味全龍", "CP / 救援投手", 1.9, 149.0, 18.2, 80, 92, 1.85)
+
+    # 2. 統一7-ELEVEn獅 (Uni-President 7-Eleven Lions)
+    players_data["陳傑憲"] = create_batter_data("陳傑憲", "統一7-ELEVEn獅", "CF / 外野手", 0.22, 0.085, 0.41, 48, 60, 0.345)
+    players_data["林安可"] = create_batter_data("林安可", "統一7-ELEVEn獅", "RF / 外野手", 0.29, 0.15, 0.47, 65, 78, 0.285)
+    players_data["邱智呈"] = create_batter_data("邱智呈", "統一7-ELEVEn獅", "LF / 外野手", 0.23, 0.09, 0.37, 999, 999, 0.320)
+    players_data["潘傑楷"] = create_batter_data("潘傑楷", "統一7-ELEVEn獅", "3B / 內野手", 0.27, 0.13, 0.42, 70, 82, 0.290)
+    players_data["古林睿煬"] = create_pitcher_data("古林睿煬", "統一7-ELEVEn獅", "SP / 先發投手", 1.8, 153.5, 17.5, 70, 82, 2.05)
+    players_data["勝騎士"] = create_pitcher_data("勝騎士", "統一7-ELEVEn獅", "SP / 先發投手", 1.9, 150.5, 16.8, 999, 999, 2.30)
+
+    # 3. 中信兄弟 (CTBC Brothers)
+    players_data["江坤宇"] = create_batter_data("江坤宇", "中信兄弟", "SS / 內野手", 0.23, 0.09, 0.35, 999, 999, 0.315)
+    players_data["岳政華"] = create_batter_data("岳政華", "中信兄弟", "CF / 外野手", 0.28, 0.13, 0.40, 68, 80, 0.275)
+    players_data["王威晨"] = create_batter_data("王威晨", "中信兄弟", "3B / 內野手", 0.24, 0.10, 0.38, 75, 87, 0.305)
+    players_data["許基宏"] = create_batter_data("許基宏", "中信兄弟", "1B / 內野手", 0.27, 0.14, 0.45, 60, 72, 0.288)
+    players_data["德保拉"] = create_pitcher_data("德保拉", "中信兄弟", "SP / 先發投手", 1.9, 149.8, 16.5, 72, 85, 2.65)
+    players_data["吳俊偉"] = create_pitcher_data("吳俊偉", "中信兄弟", "CP / 救援投手", 2.0, 151.2, 17.0, 78, 90, 2.10)
+
+    # 4. 樂天桃猿 (Rakuten Monkeys)
+    players_data["林立"] = create_batter_data("林立", "樂天桃猿", "2B / 內野手", 0.27, 0.13, 0.47, 72, 84, 0.335)
+    players_data["陳晨威"] = create_batter_data("陳晨威", "樂天桃猿", "CF / 外野手", 0.25, 0.10, 0.36, 80, 92, 0.310)
+    players_data["廖健富"] = create_batter_data("廖健富", "樂天桃猿", "DH / 指定打擊", 0.28, 0.14, 0.46, 64, 76, 0.300)
+    players_data["梁家榮"] = create_batter_data("梁家榮", "樂天桃猿", "3B / 內野手", 0.26, 0.11, 0.41, 999, 999, 0.295)
+    players_data["威能帝"] = create_pitcher_data("威能帝", "樂天桃猿", "SP / 先發投手", 1.8, 152.0, 17.2, 999, 999, 2.45)
+    players_data["黃子鵬"] = create_pitcher_data("黃子鵬", "樂天桃猿", "SP / 先發投手", 1.9, 142.5, 15.5, 76, 88, 3.10)
+
+    # 5. 富邦悍將 (Fubon Guardians)
+    players_data["張育成"] = create_batter_data("張育成", "富邦悍將", "SS / 內野手", 0.26, 0.12, 0.49, 70, 82, 0.298)
+    players_data["申皓瑋"] = create_batter_data("申皓瑋", "富邦悍將", "CF / 外野手", 0.30, 0.16, 0.42, 60, 72, 0.265)
+    players_data["王正棠"] = create_batter_data("王正棠", "富邦悍將", "2B / 內野手", 0.24, 0.09, 0.38, 999, 999, 0.308)
+    players_data["董子恩"] = create_batter_data("董子恩", "富邦悍將", "3B / 內野手", 0.22, 0.08, 0.34, 999, 999, 0.285)
+    players_data["富藍戈"] = create_pitcher_data("富藍戈", "富邦悍將", "RP / 後援投手", 1.7, 157.5, 18.0, 999, 999, 1.95)
+    players_data["江少慶"] = create_pitcher_data("江少慶", "富邦悍將", "SP / 先發投手", 2.1, 149.0, 16.2, 65, 78, 3.40)
+
+    # 6. 台鋼雄鷹 (TSG Hawks)
+    players_data["王柏融"] = create_batter_data("王柏融", "台鋼雄鷹", "LF / 外野手", 0.27, 0.13, 0.44, 68, 80, 0.285)
+    players_data["魔鷹"] = create_batter_data("魔鷹", "台鋼雄鷹", "1B / 內野手", 0.31, 0.18, 0.52, 75, 87, 0.305)
+    players_data["曾子祐"] = create_batter_data("曾子祐", "台鋼雄鷹", "SS / 內野手", 0.24, 0.09, 0.37, 999, 999, 0.298)
+    players_data["陳文杰"] = create_batter_data("陳文杰", "台鋼雄鷹", "CF / 外野手", 0.28, 0.12, 0.40, 72, 84, 0.272)
+    players_data["哈瑪星"] = create_pitcher_data("哈瑪星", "台鋼雄鷹", "SP / 先發投手", 1.9, 148.5, 16.8, 999, 999, 2.75)
+    players_data["後勁"] = create_pitcher_data("後勁", "台鋼雄鷹", "SP / 先發投手", 1.8, 147.0, 16.0, 999, 999, 2.50)
+
     return players_data
 
 # 載入球員資料庫
 all_players_data = generate_baseball_season_data()
 player_keys = list(all_players_data.keys())
+teams_list = ["味全龍", "統一7-ELEVEn獅", "中信兄弟", "樂天桃猿", "富邦悍將", "台鋼雄鷹"]
+
+# 初始化 Session State
+if "selected_team" not in st.session_state:
+    st.session_state["selected_team"] = "味全龍"
+
+team_players = [p for p in player_keys if all_players_data[p]["team"].iloc[0] == st.session_state["selected_team"]]
+
+if "selected_player" not in st.session_state or st.session_state["selected_player"] not in team_players:
+    st.session_state["selected_player"] = team_players[0] if team_players else "吉力吉撈．鞏冠"
 
 # =============================================================================
-# 3. 側邊欄控制中心 (移除評審觀察指南)
+# 3. 側邊欄控制中心 (球隊篩選、一軍名單連動、閾值滑桿)
 # =============================================================================
 st.sidebar.markdown("## ⚙️ 戰情室控制中心")
 
-# 下拉選單與 Session State 雙向連動
-current_index = player_keys.index(st.session_state["selected_player"]) if st.session_state["selected_player"] in player_keys else 0
-sidebar_selected = st.sidebar.selectbox(
-    "選擇監控球員 (Select Player):",
-    options=player_keys,
-    index=current_index,
-    key="sidebar_player_select",
-    help="點選以載入該球員的全季微疲勞時序特徵與神經運動學追蹤。"
+# 球隊選擇 (預設味全龍)
+sidebar_team = st.sidebar.selectbox(
+    "選擇球隊：",
+    options=teams_list,
+    index=teams_list.index(st.session_state["selected_team"]) if st.session_state["selected_team"] in teams_list else 0,
+    key="sidebar_team_select",
+    help="選擇欲監控之中華職棒球團，預設為味全龍。"
 )
 
-if sidebar_selected != st.session_state["selected_player"]:
-    st.session_state["selected_player"] = sidebar_selected
+if sidebar_team != st.session_state["selected_team"]:
+    st.session_state["selected_team"] = sidebar_team
+    new_team_players = [p for p in player_keys if all_players_data[p]["team"].iloc[0] == sidebar_team]
+    st.session_state["selected_player"] = new_team_players[0]
+    st.rerun()
+
+# 顯示登錄名單層級
+st.sidebar.selectbox(
+    "名單層級：",
+    options=["🟢 一軍登錄名單 (Active 28人)", "⚪ 二軍培訓名單 (Farm)"],
+    index=0,
+    help="即時篩選該球團目前登錄於一軍出賽名單之球員。"
+)
+
+# 該球隊的一軍球員名單
+team_players = [p for p in player_keys if all_players_data[p]["team"].iloc[0] == st.session_state["selected_team"]]
+current_player_idx = team_players.index(st.session_state["selected_player"]) if st.session_state["selected_player"] in team_players else 0
+
+sidebar_selected_player = st.sidebar.selectbox(
+    "選擇監控球員：",
+    options=team_players,
+    index=current_player_idx,
+    key="sidebar_player_select",
+    help="選擇所屬球隊之一軍球員以檢視時序診斷與運科處方。"
+)
+
+if sidebar_selected_player != st.session_state["selected_player"]:
+    st.session_state["selected_player"] = sidebar_selected_player
     st.rerun()
 
 selected_player = st.session_state["selected_player"]
 
 st.sidebar.markdown("---")
 st.sidebar.markdown("### 🎯 疲勞預警警戒閾值設定")
-threshold_red = st.sidebar.slider("高風險警戒線 (MFI Red)", 65, 80, 70, 1, help="當微疲勞指數超過此門檻時亮起紅燈預警")
-threshold_yellow = st.sidebar.slider("觀察期門檻 (MFI Yellow)", 45, 60, 50, 1, help="當微疲勞指數介於此區間時亮起黃燈觀察")
+threshold_red = st.sidebar.slider("高風險警戒線 (MFI)", 65, 80, 70, 1, help="當微疲勞指數超過此門檻時亮起紅燈預警")
+threshold_yellow = st.sidebar.slider("觀察期門檻 (MFI)", 45, 60, 50, 1, help="當微疲勞指數介於此區間時亮起黃燈觀察")
 
 # 取得選定球員資料
 selected_df = all_players_data[selected_player]
@@ -934,7 +983,7 @@ is_batter = selected_df["role_type"].iloc[0] == "打者"
 # =============================================================================
 # 4. 頂部戰情總覽 (War Room KPI Dashboard)
 # =============================================================================
-st.markdown("""
+st.markdown(f"""
 <div class="war-room-header-wrapper">
     <div class="md-blob md-blob-1" aria-hidden="true"></div>
     <div class="md-blob md-blob-2" aria-hidden="true"></div>
@@ -948,42 +997,48 @@ st.markdown("""
                 </div>
             </div>
             <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                <span class="badge badge-green">● 系統在線：WebAssembly</span>
+                <span class="badge badge-primary">⚾ {st.session_state['selected_team']}</span>
                 <span class="badge badge-tonal">即時監控：第 115 場</span>
+                <span class="badge badge-green">一軍出賽名單</span>
             </div>
         </div>
     </div>
 </div>
 """, unsafe_allow_html=True)
 
-# 動態計算高風險疲勞球員數量 (與閾值連動)
-high_risk_count = sum(1 for p in player_keys if all_players_data[p]["mfi"].iloc[-1] >= threshold_red)
-high_risk_names = "、".join([p for p in player_keys if all_players_data[p]["mfi"].iloc[-1] >= threshold_red])
+# 動態計算該球隊高風險疲勞球員數量
+team_high_risk = [p for p in team_players if all_players_data[p]["mfi"].iloc[-1] >= threshold_red]
+high_risk_count = len(team_high_risk)
+high_risk_names = "、".join(team_high_risk) if team_high_risk else "無"
 
-# 頂部戰情 4 大核心 KPI 指標卡片
+# 計算該隊全隊健康指數
+team_mfi_avg = np.mean([all_players_data[p]["mfi"].iloc[-1] for p in team_players])
+avg_thi = max(10.0, min(99.0, 100.0 - (team_mfi_avg - 25.0) * 1.1))
+
+# KPI 卡片列 (完全移除英文縮寫 THI, HIGH RISK, LEAD TIME, PREVENTION)
 kpi_c1, kpi_c2, kpi_c3, kpi_c4 = st.columns(4)
 
 with kpi_c1:
     st.markdown(render_theme_kpi_card(
-        label="隊伍綜合健康指數 (THI)",
-        value="81.4",
-        unit="/ 100",
-        subtext="全隊加權微疲勞風險控制優良",
+        label="隊伍綜合健康指數",
+        value=f"{avg_thi:.1f}",
+        unit="分",
+        subtext=f"{st.session_state['selected_team']} 一軍整體體能狀態",
         color="#0A2C51"
     ), unsafe_allow_html=True)
 
 with kpi_c2:
     st.markdown(render_theme_kpi_card(
-        label="隱形高風險疲勞球員 (High Risk)",
-        value=str(high_risk_count),
+        label="隱形高風險疲勞球員",
+        value=f"{high_risk_count}",
         unit="位",
-        subtext=f"警戒球員：{high_risk_names}" if high_risk_names else "全隊維持於安全區間",
+        subtext=f"警戒球員：{high_risk_names}" if high_risk_names != "無" else "全隊維持於安全區間",
         color="#E8383D"
     ), unsafe_allow_html=True)
 
 with kpi_c3:
     st.markdown(render_theme_kpi_card(
-        label="先行預警平均領先時差 (Lead Time)",
+        label="先行預警平均領先時差",
         value="12.4",
         unit="天",
         subtext="相當於傳統成績跳水前 10~14 天",
@@ -992,7 +1047,7 @@ with kpi_c3:
 
 with kpi_c4:
     st.markdown(render_theme_kpi_card(
-        label="負荷介入預防成功率 (Prevention)",
+        label="負荷介入預防成功率",
         value="88.5",
         unit="%",
         subtext="成功避免 15 天以上長期低潮或受傷",
@@ -1002,13 +1057,28 @@ with kpi_c4:
 st.write("")
 
 # =============================================================================
-# 5. 全隊主力監控燈號矩陣 (可點擊切換球員之互動矩陣)
+# 5. 全隊一軍主力監控燈號矩陣 (點選球員卡即可切換分析，移除多餘按鈕與字眼)
 # =============================================================================
-st.markdown("### 📋 主力陣容微疲勞監控燈號矩陣 (點選卡片直接切換分析球員)")
+c_title, c_picker = st.columns([3, 1.4])
+with c_title:
+    st.markdown(f"### 📋 {st.session_state['selected_team']} 一軍即時監控陣容")
+with c_picker:
+    picked_team = st.selectbox(
+        "快速切換球隊：",
+        options=teams_list,
+        index=teams_list.index(st.session_state["selected_team"]),
+        key="main_team_picker",
+        label_visibility="collapsed"
+    )
+    if picked_team != st.session_state["selected_team"]:
+        st.session_state["selected_team"] = picked_team
+        new_players = [p for p in player_keys if all_players_data[p]["team"].iloc[0] == picked_team]
+        st.session_state["selected_player"] = new_players[0]
+        st.rerun()
 
-matrix_cols = st.columns(6)
+matrix_cols = st.columns(len(team_players))
 
-for idx, p_name in enumerate(player_keys):
+for idx, p_name in enumerate(team_players):
     p_df = all_players_data[p_name]
     curr_mfi = p_df["mfi"].iloc[-1]
     pos = p_df["pos"].iloc[0]
@@ -1022,35 +1092,35 @@ for idx, p_name in enumerate(player_keys):
         badge_html = render_theme_badge(f"🟢 正常 ({curr_mfi:.1f})", "green")
         
     is_active = (p_name == selected_player)
-    active_style = "border-color: #0A2C51; background: #E2ECF8; box-shadow: 0 4px 14px rgba(10, 44, 81, 0.2);" if is_active else ""
+    active_cls = "player-card-active" if is_active else ""
     
     with matrix_cols[idx]:
         st.markdown(f"""
-        <div class="player-card" style="{active_style}">
+        <div class="player-card {active_cls}">
             <div class="player-name">{p_name}</div>
             <div class="player-pos">{pos}</div>
-            <div style="margin-bottom: 8px;">{badge_html}</div>
+            <div style="margin-top: 6px;">{badge_html}</div>
         </div>
         """, unsafe_allow_html=True)
-        # 提供直覺互動切換按鈕
-        if st.button("檢視分析" if not is_active else "目前選定 ✓", key=f"btn_roster_{idx}", use_container_width=True, disabled=is_active):
+        # 覆蓋整張卡片的透明按鈕，點選卡片直接切換球員
+        if st.button(p_name, key=f"btn_pcard_{p_name}", help=f"點選查看 {p_name} 之微疲勞分析"):
             st.session_state["selected_player"] = p_name
             st.rerun()
 
 st.write("")
 
 # =============================================================================
-# 6. 互動式全功能導覽頁籤 (藍白紅經典藥丸頁籤)
+# 6. 互動式全功能導覽頁籤 (移除英文 Diagnostics, Biomechanics, Simulation, Prescriptions)
 # =============================================================================
 tab1, tab2, tab3, tab4 = st.tabs([
-    "📈 賽季時序深度診斷 (Diagnostics)",
-    "🔬 運科生理因果解構 (Biomechanics)",
-    "🎮 負荷管理反事實模擬 (Simulation)",
-    "🛡️ 教練調度與防護處方箋 (Prescriptions)"
+    "📈 賽季時序深度診斷",
+    "🔬 運科生理因果解構",
+    "🎮 負荷管理反事實模擬",
+    "🛡️ 教練調度與防護處方箋"
 ])
 
 # -----------------------------------------------------------------------------
-# TAB 1: 賽季微疲勞時序對比圖 (優化排版加大間距、不擁擠、藍白紅色系)
+# TAB 1: 賽季微疲勞時序對比圖 (文字不重疊、寬敞邊距、完整診斷明細表)
 # -----------------------------------------------------------------------------
 with tab1:
     # 寬敞時序控制面板
@@ -1058,31 +1128,32 @@ with tab1:
     <div style="background: #FFFFFF; border: 1.5px solid #CBD5E1; border-radius: 20px; padding: 18px 24px; margin-bottom: 20px; box-shadow: 0 1px 4px rgba(10, 44, 81, 0.05);">
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 10px;">
             <div>
-                <span style="font-size: 16px; font-weight: 700; color: #0A2C51;">📅 賽季時序視窗動態縮放</span>
-                <span style="font-size: 13px; color: #475569; margin-left: 8px;">滑動以聚焦關鍵場次區間（例如第 40~75 場先行預警時差窗口）</span>
+                <span style="font-size: 17px; font-weight: 800; color: #0A2C51;">⏱️ 賽季時序監控視窗</span>
+                <span style="color: #475569; font-size: 13.5px; margin-left: 8px;">拖曳滑桿以縮放檢視特定賽事區間：</span>
             </div>
             <div>
-                <span class="badge badge-tonal">目前檢視：<b>{selected_player}</b> ({selected_df["pos"].iloc[0]})</span>
+                <span class="badge badge-tonal">目前分析：{selected_player} ({selected_df['pos'].iloc[0]})</span>
             </div>
         </div>
     </div>
     """, unsafe_allow_html=True)
-
+    
+    # 場次滑桿 (圓點隨滑鼠順暢移動)
     game_range = st.slider(
-        "調整賽季場次範圍 (Game Range):",
+        "賽事場次範圍：",
         min_value=1,
         max_value=115,
         value=(1, 115),
         step=1,
-        help="滑動以聚焦於特定賽季區間"
+        help="自由縮放賽季觀察視窗，聚焦先行特徵與落後成績的時差變化。",
+        label_visibility="collapsed"
     )
 
-    # 依據滑桿過濾時序資料
     filtered_df = selected_df[(selected_df["game"] >= game_range[0]) & (selected_df["game"] <= game_range[1])]
 
-    # 進階功能：自訂 MFI 權重自訂算盤
-    with st.expander("⚙️ 進階互動工具：即時自訂先行特徵權重係數 (Dynamic Feature Weighting)"):
-        st.markdown("調整各先行生物力學特徵加權權重，即時動態重算該球員的 MFI 指數曲線：")
+    # 移除 (Dynamic Feature Weighting) 英文
+    with st.expander("⚙️ 進階互動工具：即時自訂先行特徵權重係數"):
+        st.markdown("<p style='font-size: 13px; color: #475569; margin-bottom: 12px;'>動態調節微疲勞演算法權重係數，圖表將即時重新計算 MFI 曲線：</p>", unsafe_allow_html=True)
         if is_batter:
             w_c1, w_c2, w_c3 = st.columns(3)
             with w_c1:
@@ -1118,20 +1189,20 @@ with tab1:
             s_ivb = np.clip((18.0 - filtered_df["ivb_inch"]) / (18.0 - 14.0), 0, 1) * 100
             plot_mfi = np.round(w_rel_n * s_rel + w_velo_n * s_velo + w_ivb_n * s_ivb, 1)
 
-    # 建立雙子圖配置 (加大高度與間距，徹底解除擁擠感)
+    # 建立雙子圖配置 (加寬邊距、加大子圖間距 0.18，徹底避免文字重疊)
     if is_batter:
         fig = make_subplots(
             rows=2, cols=1,
             shared_xaxes=True,
-            vertical_spacing=0.14,
+            vertical_spacing=0.18,
             subplot_titles=(
-                f"📊 落後指標：{selected_player} 傳統累積打擊率 (Cumulative AVG) 走勢",
-                f"🔬 先行指標：微疲勞指數 (MFI) 與 好球帶決策特徵 (滾動 7 天 O-Swing%, Z-Whiff%, HardHit%)"
+                f"📊 落後指標：{selected_player} 傳統累積打擊率走勢",
+                f"🔬 先行指標：微疲勞指數 (MFI) 與 好球帶決策特徵"
             ),
-            row_heights=[0.44, 0.56]
+            row_heights=[0.42, 0.58]
         )
         
-        # 上圖：傳統累積打擊率 (經典深海軍藍 #0A2C51)
+        # 上圖：傳統累積打擊率 (海軍藍)
         fig.add_trace(
             go.Scatter(
                 x=filtered_df["game"].tolist(),
@@ -1143,7 +1214,7 @@ with tab1:
             row=1, col=1
         )
         
-        # 聯盟平均打擊率基準線
+        # 聯盟基準線
         fig.add_hline(
             y=0.265, line_dash="dot", line_color="#64748B",
             annotation_text="聯盟平均 (.265)", annotation_position="bottom right",
@@ -1151,69 +1222,71 @@ with tab1:
             row=1, col=1
         )
         
-        # 下圖：微疲勞綜合風險指數 (MFI, 鮮紅 #E8383D)
+        # 下圖：微疲勞綜合風險指數 (熱血紅)
         fig.add_trace(
             go.Scatter(
                 x=filtered_df["game"].tolist(),
                 y=plot_mfi.tolist() if hasattr(plot_mfi, "tolist") else list(plot_mfi),
-                name="微疲勞綜合風險指數 (MFI)",
+                name="微疲勞指數 (MFI)",
                 line=dict(color="#E8383D", width=3.5),
                 hovertemplate="第 %{x} 場<br>MFI 指數: %{y:.1f}<extra></extra>"
             ),
             row=2, col=1
         )
         
-        # 滾動 7 天 O-Swing% (壞球追打率 - 琥珀黃 #D97706)
+        # 滾動 7 天 O-Swing% (壞球追打率 - 琥珀黃)
         fig.add_trace(
             go.Scatter(
                 x=filtered_df["game"].tolist(),
                 y=filtered_df["roll_oswing"].tolist(),
-                name="壞球追打率 O-Swing% (7天滾動)",
+                name="壞球追打率 (7天滾動)",
                 line=dict(color="#D97706", width=2.0, dash="dash"),
                 hovertemplate="第 %{x} 場<br>O-Swing%: %{y:.1f}%<extra></extra>"
             ),
             row=2, col=1
         )
         
-        # 滾動 7 天 Z-Whiff% (帶內揮空率 - 科技活力藍 #1E5AA0)
+        # 滾動 7 天 Z-Whiff% (帶內揮空率 - 活力藍)
         fig.add_trace(
             go.Scatter(
                 x=filtered_df["game"].tolist(),
                 y=filtered_df["roll_zwhiff"].tolist(),
-                name="帶內揮空率 Z-Whiff% (7天滾動)",
+                name="帶內揮空率 (7天滾動)",
                 line=dict(color="#1E5AA0", width=2.0, dash="dot"),
                 hovertemplate="第 %{x} 場<br>Z-Whiff%: %{y:.1f}%<extra></extra>"
             ),
             row=2, col=1
         )
         
-        # 滾動 7 天 HardHit% (強擊球率 - 翡翠綠 #059669)
+        # 滾動 7 天 HardHit% (強擊球率 - 翡翠綠)
         fig.add_trace(
             go.Scatter(
                 x=filtered_df["game"].tolist(),
                 y=filtered_df["roll_hardhit"].tolist(),
-                name="強擊球率 HardHit% (7天滾動)",
+                name="強擊球率 (7天滾動)",
                 line=dict(color="#059669", width=2.0, dash="dashdot"),
                 hovertemplate="第 %{x} 場<br>HardHit%: %{y:.1f}%<extra></extra>"
             ),
             row=2, col=1
         )
         
-        # 門檻標示線
+        # 門檻標示線 (一上一下，防止標籤文字重疊)
         fig.add_hline(
             y=threshold_red, line_dash="dash", line_color="#E8383D",
             annotation_text=f"高風險警戒 ({threshold_red})",
+            annotation_position="top right",
             annotation_font_color="#E8383D", annotation_font_size=11,
             row=2, col=1
         )
         fig.add_hline(
             y=threshold_yellow, line_dash="dash", line_color="#D97706",
             annotation_text=f"觀察門檻 ({threshold_yellow})",
+            annotation_position="bottom right",
             annotation_font_color="#D97706", annotation_font_size=11,
             row=2, col=1
         )
         
-        # 標註疲勞與預警窗口 (柔和淺藍色塊 #E2ECF8)
+        # 標註疲勞與預警窗口 (帶白底膠囊背景，徹底防止文字蓋住線條)
         crash_start = int(selected_df["fatigue_phase_start"].iloc[0])
         crash_end = int(selected_df["performance_crash_point"].iloc[0])
         
@@ -1224,35 +1297,45 @@ with tab1:
                     x0=crash_start, x1=crash_end,
                     fillcolor="rgba(226, 236, 248, 0.75)",
                     layer="below", line_width=1.5, line_color="rgba(10, 44, 81, 0.45)",
-                    annotation_text=f"⚡ 黃金預警時差窗口 ({lead_time} 場時差)" if r_idx == 1 else None,
+                    annotation_text=f"⚡ 黃金預警窗口 ({lead_time}場時差)" if r_idx == 1 else None,
                     annotation_position="top left",
                     annotation_font_color="#0A2C51",
-                    annotation_font_size=12,
+                    annotation_font_size=11,
+                    annotation_bgcolor="rgba(255, 255, 255, 0.92)",
+                    annotation_borderpad=3,
                     row=r_idx, col=1
                 )
             
-            # 若崩盤點落在目前篩選視窗內，加上標註箭頭
+            # 若崩盤點落在目前篩選視窗內，加上標註箭頭 (獨立白底卡片)
             if game_range[0] <= crash_end <= game_range[1]:
                 crash_rows = selected_df.loc[selected_df['game'] == crash_end, 'cum_avg']
                 if not crash_rows.empty and not pd.isna(crash_rows.values[0]):
                     crash_y = float(crash_rows.values[0])
                     fig.add_annotation(
                         x=crash_end, y=crash_y,
-                        text=f"📉 第 {crash_end} 場：傳統打擊率崩盤跳水",
+                        text=f"📉 第 {crash_end} 場：打擊率跳水",
                         showarrow=True, arrowhead=2, arrowsize=1, arrowwidth=2, arrowcolor="#E8383D",
-                        ax=45, ay=-45,
-                        font=dict(color="#E8383D", size=12, family="Roboto, sans-serif"),
+                        ax=50, ay=-40,
+                        bgcolor="rgba(255, 255, 255, 0.95)",
+                        bordercolor="#E8383D",
+                        borderwidth=1.5,
+                        borderpad=4,
+                        font=dict(color="#E8383D", size=11.5, family="Roboto, sans-serif"),
                         row=1, col=1
                     )
             
-            # 若預警觸發點落在目前篩選視窗內，加上警報標註
+            # 若預警觸發點落在目前篩選視窗內，加上警報標註 (獨立白底卡片)
             if game_range[0] <= crash_start <= game_range[1]:
                 fig.add_annotation(
                     x=crash_start, y=float(threshold_red),
-                    text=f"🚨 第 {crash_start} 場：MFI 突破 {threshold_red} (先行指標拉警報)",
+                    text=f"🚨 第 {crash_start} 場：MFI 突破警戒",
                     showarrow=True, arrowhead=2, arrowsize=1, arrowwidth=2, arrowcolor="#D97706",
-                    ax=-45, ay=-50,
-                    font=dict(color="#D97706", size=12, family="Roboto, sans-serif"),
+                    ax=-50, ay=-40,
+                    bgcolor="rgba(255, 255, 255, 0.95)",
+                    bordercolor="#D97706",
+                    borderwidth=1.5,
+                    borderpad=4,
+                    font=dict(color="#D97706", size=11.5, family="Roboto, sans-serif"),
                     row=2, col=1
                 )
                 
@@ -1264,15 +1347,15 @@ with tab1:
         fig = make_subplots(
             rows=2, cols=1,
             shared_xaxes=True,
-            vertical_spacing=0.14,
+            vertical_spacing=0.18,
             subplot_titles=(
-                f"📊 落後指標：{selected_player} 傳統防禦率 (ERA) 走勢",
-                f"🔬 先行指標：微疲勞指數 (MFI) 與 出手點 3D 空間離散度 / 均速"
+                f"📊 落後指標：{selected_player} 傳統防禦率走勢",
+                f"🔬 先行指標：微疲勞指數 (MFI) 與 出手點離散度 / 均速"
             ),
-            row_heights=[0.44, 0.56]
+            row_heights=[0.42, 0.58]
         )
         
-        # 1. 上圖：ERA (經典海軍藍 #0A2C51)
+        # 1. 上圖：ERA (海軍藍)
         fig.add_trace(
             go.Scatter(
                 x=filtered_df["game"].tolist(),
@@ -1284,7 +1367,7 @@ with tab1:
             row=1, col=1
         )
         
-        # 2. 下圖：MFI (鮮紅 #E8383D)
+        # 2. 下圖：MFI (熱血紅)
         fig.add_trace(
             go.Scatter(
                 x=filtered_df["game"].tolist(),
@@ -1296,24 +1379,24 @@ with tab1:
             row=2, col=1
         )
         
-        # 出手點離散度 (活力藍 #1E5AA0)
+        # 出手點離散度 (活力藍)
         fig.add_trace(
             go.Scatter(
                 x=filtered_df["game"].tolist(),
                 y=filtered_df["rel_disp_cm"].tolist(),
-                name="出手點 3D 離散度 (cm)",
+                name="出手點離散度 (cm)",
                 line=dict(color="#1E5AA0", width=2.0, dash="dash"),
                 hovertemplate="第 %{x} 場<br>出手點離散: %{y:.2f} cm<extra></extra>"
             ),
             row=2, col=1
         )
         
-        # 均速 (鋼鐵灰藍 #475569)
+        # 均速 (鋼鐵灰藍)
         fig.add_trace(
             go.Scatter(
                 x=filtered_df["game"].tolist(),
                 y=(filtered_df["fastball_velo_kph"] - 140).tolist(),
-                name="四縫線均速 (km/h - 140 基準)",
+                name="均速損耗 (-140km/h基準)",
                 line=dict(color="#475569", width=2.0, dash="dot"),
                 hovertemplate="第 %{x} 場<br>均速: %{text} km/h<extra></extra>",
                 text=filtered_df["fastball_velo_kph"].tolist()
@@ -1324,7 +1407,15 @@ with tab1:
         fig.add_hline(
             y=threshold_red, line_dash="dash", line_color="#E8383D",
             annotation_text=f"高風險警戒 ({threshold_red})",
+            annotation_position="top right",
             annotation_font_color="#E8383D", annotation_font_size=11,
+            row=2, col=1
+        )
+        fig.add_hline(
+            y=threshold_yellow, line_dash="dash", line_color="#D97706",
+            annotation_text=f"觀察門檻 ({threshold_yellow})",
+            annotation_position="bottom right",
+            annotation_font_color="#D97706", annotation_font_size=11,
             row=2, col=1
         )
         
@@ -1338,24 +1429,26 @@ with tab1:
                     x0=crash_start, x1=crash_end,
                     fillcolor="rgba(226, 236, 248, 0.75)",
                     layer="below", line_width=1.5, line_color="rgba(10, 44, 81, 0.45)",
-                    annotation_text=f"⚡ 投手微疲勞預警窗口 ({lead_time} 場時差)" if r_idx == 1 else None,
+                    annotation_text=f"⚡ 投手預警窗口 ({lead_time}場時差)" if r_idx == 1 else None,
                     annotation_position="top left",
                     annotation_font_color="#0A2C51",
-                    annotation_font_size=12,
+                    annotation_font_size=11,
+                    annotation_bgcolor="rgba(255, 255, 255, 0.92)",
+                    annotation_borderpad=3,
                     row=r_idx, col=1
                 )
             
         y1_title = "累積防禦率 (ERA)"
         y2_title = "MFI 指數 / 運動學指標"
 
-    # 圖表整體排版：拉大高度至 740px，清爽白底，加寬邊距
+    # 圖表整體排版：拉大高度至 760px，頂部加寬留給圖例，邊距充足，文字絕不重疊
     fig.update_layout(
         template="plotly_white",
         paper_bgcolor="#FFFFFF",
         plot_bgcolor="#F8FAFC",
         font=dict(family="Roboto, sans-serif", color="#0F172A"),
-        height=740,
-        margin=dict(l=65, r=35, t=65, b=55),
+        height=760,
+        margin=dict(l=70, r=40, t=110, b=55),
         hovermode="x unified",
         hoverlabel=dict(
             bgcolor="#FFFFFF",
@@ -1367,11 +1460,11 @@ with tab1:
         legend=dict(
             orientation="h",
             yanchor="bottom",
-            y=1.03,
-            xanchor="right",
-            x=1,
+            y=1.06,
+            xanchor="center",
+            x=0.5,
             font=dict(size=11.5, family="Roboto, sans-serif", color="#475569"),
-            bgcolor="rgba(255, 255, 255, 0.9)",
+            bgcolor="rgba(255, 255, 255, 0.92)",
             bordercolor="#CBD5E1",
             borderwidth=1
         )
@@ -1401,6 +1494,81 @@ with tab1:
 
     st.plotly_chart(fig, use_container_width=True)
 
+    # -------------------------------------------------------------------------
+    # 診斷數據明細表格 (格式化單元格，內距充足，文字完全不重疊)
+    # -------------------------------------------------------------------------
+    st.markdown("#### 📋 近 10 場微疲勞先行指標數值明細表")
+    recent_10 = filtered_df.tail(10).iloc[::-1]
+    
+    rows_html = []
+    for _, row in recent_10.iterrows():
+        g_num = int(row['game'])
+        g_date = row['date'].strftime('%m/%d') if hasattr(row['date'], 'strftime') else str(row['date'])[:5]
+        mfi_val = float(row['mfi'])
+        if mfi_val >= threshold_red:
+            tag = '<span class="badge badge-red" style="padding: 2px 8px; font-size: 11px;">🔴 高風險</span>'
+        elif mfi_val >= threshold_yellow:
+            tag = '<span class="badge badge-yellow" style="padding: 2px 8px; font-size: 11px;">🟡 觀察期</span>'
+        else:
+            tag = '<span class="badge badge-green" style="padding: 2px 8px; font-size: 11px;">🟢 正常</span>'
+            
+        if is_batter:
+            perf = f"{row['cum_avg']:.3f}"
+            feat1 = f"{row['roll_oswing']:.1f}%"
+            feat2 = f"{row['roll_zwhiff']:.1f}%"
+            feat3 = f"{row['roll_hardhit']:.1f}%"
+        else:
+            perf = f"{row['cum_era']:.2f}"
+            feat1 = f"{row['rel_disp_cm']:.2f} cm"
+            feat2 = f"{row['fastball_velo_kph']:.1f} km/h"
+            feat3 = f"{row['ivb_inch']:.1f} in"
+            
+        rows_html.append(f"""
+        <tr>
+            <td style="font-weight: 700; color: #0A2C51;">第 {g_num} 場</td>
+            <td>{g_date}</td>
+            <td style="font-weight: 700;">{perf}</td>
+            <td style="font-weight: 800; color: {'#E8383D' if mfi_val >= threshold_red else '#0A2C51'};">{mfi_val:.1f}</td>
+            <td>{feat1}</td>
+            <td>{feat2}</td>
+            <td>{feat3}</td>
+            <td>{tag}</td>
+        </tr>
+        """)
+        
+    table_headers = """
+    <tr>
+        <th>場次</th>
+        <th>日期</th>
+        <th>累積打擊率 (AVG)</th>
+        <th>微疲勞指數 (MFI)</th>
+        <th>壞球追打率 O-Swing%</th>
+        <th>帶內揮空率 Z-Whiff%</th>
+        <th>強擊球率 HardHit%</th>
+        <th>狀態燈號</th>
+    </tr>
+    """ if is_batter else """
+    <tr>
+        <th>場次</th>
+        <th>日期</th>
+        <th>累積防禦率 (ERA)</th>
+        <th>微疲勞指數 (MFI)</th>
+        <th>出手點 3D 離散度</th>
+        <th>四縫線均速</th>
+        <th>垂直誘發位移</th>
+        <th>狀態燈號</th>
+    </tr>
+    """
+    
+    st.markdown(f"""
+    <div style="overflow-x: auto; width: 100%; border-radius: 14px; box-shadow: 0 1px 4px rgba(10, 44, 81, 0.06); margin-top: 10px;">
+        <table class="diag-table">
+            <thead>{table_headers}</thead>
+            <tbody>{''.join(rows_html)}</tbody>
+        </table>
+    </div>
+    """, unsafe_allow_html=True)
+
 # -----------------------------------------------------------------------------
 # TAB 2: 運科因果解構與機制分析
 # -----------------------------------------------------------------------------
@@ -1426,7 +1594,7 @@ with tab2:
             </div>
             <div style="font-size: 14px; line-height: 1.6; color: #0F172A;">
                 <b>3. 落後掩飾效應 (Lag Buffering Effect)</b>：<br>
-                在累積打數龐大時，即使連續 5~8 場擊球品質低下，選手仍可能靠防守失誤或「德州安打」短暫維持打擊率；直至第 12 天前後好運耗盡，傳統成績呈現雪崩式跌幅。
+                在累積打數龐大時，即便連續 5~8 場擊球品質低下，選手仍可能靠防守失誤或「德州安打」短暫維持打擊率；直至第 12 天前後好運耗盡，傳統成績呈現雪崩式跌幅。
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -1449,19 +1617,24 @@ with tab2:
             <div class="telemetry-card">
                 <div class="telemetry-row">
                     <span>壞球追打率 (O-Swing%):</span>
-                    <span style="font-weight: 700; color: {os_color};">{latest_os:.1f}% (基線 22.0%)</span>
+                    <span style="font-weight: 700; color: {os_color};">{latest_os:.1f}%</span>
                 </div>
                 <div class="telemetry-row">
-                    <span>帶內揮空率 (Z-Whiff%):</span>
-                    <span style="font-weight: 700; color: {zw_color};">{latest_zw:.1f}% (基線 8.5%)</span>
+                    <span>好球帶內揮空率 (Z-Whiff%):</span>
+                    <span style="font-weight: 700; color: {zw_color};">{latest_zw:.1f}%</span>
                 </div>
                 <div class="telemetry-row">
                     <span>強擊球率 (HardHit%):</span>
-                    <span style="font-weight: 700; color: {hh_color};">{latest_hh:.1f}% (基線 41.0%)</span>
+                    <span style="font-weight: 700; color: {hh_color};">{latest_hh:.1f}%</span>
                 </div>
                 <div class="telemetry-row total-row">
-                    <span>微疲勞指數 (MFI):</span>
-                    <span style="font-size: 19px; font-weight: 900; color: {mfi_color};">{latest_mfi:.1f} / 100</span>
+                    <span>綜合微疲勞先行指數 (MFI):</span>
+                    <span style="font-size: 20px; font-weight: 900; color: {mfi_color};">{latest_mfi:.1f}</span>
+                </div>
+                <div style="margin-top: 14px; text-align: center;">
+                    <span class="telemetry-badge {'badge-red' if latest_mfi >= threshold_red else ('badge-yellow' if latest_mfi >= threshold_yellow else 'badge-safe')}">
+                        {'⚠️ 神經傳導延遲警報' if latest_mfi >= threshold_red else ('👀 建議降低出賽強度' if latest_mfi >= threshold_yellow else '✅ 神經肌肉動能良好')}
+                    </span>
                 </div>
             </div>
             """, unsafe_allow_html=True)
@@ -1470,57 +1643,77 @@ with tab2:
             latest_velo = selected_df["fastball_velo_kph"].iloc[-1]
             latest_ivb = selected_df["ivb_inch"].iloc[-1]
             
-            disp_color = "#E8383D" if latest_disp > 3.0 else "#059669"
-            velo_color = "#E8383D" if latest_velo < 151 else "#059669"
+            disp_color = "#E8383D" if latest_disp > 3.2 else "#059669"
+            velo_color = "#E8383D" if latest_velo < 150.0 else "#059669"
             ivb_color = "#E8383D" if latest_ivb < 15.5 else "#059669"
             mfi_color = "#E8383D" if latest_mfi >= threshold_red else ("#D97706" if latest_mfi >= threshold_yellow else "#059669")
             
             st.markdown(f"""
             <div class="telemetry-card">
                 <div class="telemetry-row">
-                    <span>出手點 3D 離散度:</span>
-                    <span style="font-weight: 700; color: {disp_color};">{latest_disp:.2f} cm (基線 1.8cm)</span>
+                    <span>出手點 3D 空間離散度:</span>
+                    <span style="font-weight: 700; color: {disp_color};">{latest_disp:.2f} cm</span>
                 </div>
                 <div class="telemetry-row">
-                    <span>四縫線均速:</span>
-                    <span style="font-weight: 700; color: {velo_color};">{latest_velo:.1f} km/h (基線 153.5)</span>
+                    <span>四縫線直球均速:</span>
+                    <span style="font-weight: 700; color: {velo_color};">{latest_velo:.1f} km/h</span>
                 </div>
                 <div class="telemetry-row">
-                    <span>垂直誘發位移 (iVB):</span>
-                    <span style="font-weight: 700; color: {ivb_color};">{latest_ivb:.1f} in (基線 17.5)</span>
+                    <span>垂直誘發位移 (IVB):</span>
+                    <span style="font-weight: 700; color: {ivb_color};">{latest_ivb:.1f} inch</span>
                 </div>
                 <div class="telemetry-row total-row">
                     <span>投手微疲勞指數 (MFI):</span>
-                    <span style="font-size: 19px; font-weight: 900; color: {mfi_color};">{latest_mfi:.1f} / 100</span>
+                    <span style="font-size: 20px; font-weight: 900; color: {mfi_color};">{latest_mfi:.1f}</span>
+                </div>
+                <div style="margin-top: 14px; text-align: center;">
+                    <span class="telemetry-badge {'badge-red' if latest_mfi >= threshold_red else ('badge-yellow' if latest_mfi >= threshold_yellow else 'badge-safe')}">
+                        {'⚠️ 手臂制動失控警報' if latest_mfi >= threshold_red else ('👀 建議縮減單場球數' if latest_mfi >= threshold_yellow else '✅ 出手動力鏈高度穩定')}
+                    </span>
                 </div>
             </div>
             """, unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
-# TAB 3: 互動式負荷管理介入模擬器
+# TAB 3: 反事實因果推論與負荷管理模擬器
 # -----------------------------------------------------------------------------
 with tab3:
-    st.markdown("### 🎮 負荷管理及時介入效益模擬器 (Counterfactual Intervention Simulator)")
+    st.markdown("### 🎮 負荷管理反事實模擬器 (What-If Counterfactual Sandbox)")
+    st.markdown("""
+    <div style="color: #475569; font-size: 14px; margin-bottom: 18px;">
+        在第 48 場 MFI 亮起紅燈時，若總教練立即介入處方（例如：指定打擊輪換或跳過先發一次），能否保全季末成績？
+    </div>
+    """, unsafe_allow_html=True)
     
-    sim_c1, sim_c2 = st.columns([1.2, 1])
+    col_sim_ctrl, col_sim_view = st.columns([1, 2])
     
-    with sim_c1:
-        enable_intervention = st.toggle(
-            f"⚡ 啟動虛擬反事實模擬：若在先行預警警報發出時執行【負荷管理處方】？",
-            value=True,
-            help="模擬當教練團在先行指標紅燈時，立即給予 3 天輪休與 DH 轉任，而非放任打滿全季的成績對比。"
+    with col_sim_ctrl:
+        st.markdown("""
+        <div style="background: #FFFFFF; border: 1.5px solid #CBD5E1; border-radius: 20px; padding: 22px; box-shadow: var(--theme-elevation-1);">
+            <div style="font-weight: 700; font-size: 15px; color: #0A2C51; margin-bottom: 12px;">🎛️ 介入參數配置</div>
+        """, unsafe_allow_html=True)
+        
+        sim_intervention = st.checkbox("啟用 MFEWS 及時處方介入", value=True)
+        interv_type = st.radio(
+            "介入調度策略：",
+            ["全面輪休 3 天 + 指定打擊 4 場", "僅安排 1 場完全輪休", "提早至第 45 場預警性輪休"],
+            index=0
         )
-    with sim_c2:
-        intervene_game_input = st.slider("介入實施場次 (Intervention Game):", 40, 70, 48, 1)
-
-    if enable_intervention:
+        fatigue_recovery_rate = st.slider("介入恢復效能強度係數", 0.5, 2.0, 1.2, 0.1)
+        
+        st.markdown("</div>", unsafe_allow_html=True)
+        
+    with col_sim_view:
         if is_batter:
-            sim_avg = selected_df["cum_avg"].copy().values
-            for i in range(len(sim_avg)):
-                if selected_df["game"].iloc[i] >= intervene_game_input:
-                    diff = selected_df["game"].iloc[i] - intervene_game_input
-                    sim_avg[i] = max(0.320, sim_avg[i] + min(0.038, diff * 0.0018))
-                    
+            sim_avg = selected_df["cum_avg"].copy()
+            if sim_intervention:
+                c_start = int(selected_df["fatigue_phase_start"].iloc[0])
+                if c_start < 900:
+                    for idx in range(len(sim_avg)):
+                        g = selected_df["game"].iloc[idx]
+                        if g >= c_start + 8:
+                            sim_avg.iloc[idx] = min(0.355, sim_avg.iloc[idx] + 0.038 * fatigue_recovery_rate)
+            
             fig_sim = go.Figure()
             fig_sim.add_trace(go.Scatter(
                 x=selected_df["game"].tolist(), y=selected_df["cum_avg"].tolist(),
@@ -1558,21 +1751,19 @@ with tab3:
             
             st.plotly_chart(fig_sim, use_container_width=True)
             
-            st.markdown("""
-            <div class="benefit-callout">
-                <div style="font-size: 16px; font-weight: 700; margin-bottom: 8px;">🎯 模擬介入效益結算 (Load Management Prescription Outcome)</div>
-                <div>• <b>避免成績跳水</b>：及時阻斷長達 25 場的低潮期，最終賽季打擊率自 <code>.288</code> 保全回升至 <code>.323</code>（+35 點）。</div>
-                <div>• <b>預防受傷效益</b>：腹斜肌拉傷與腰部代償風險指數由 78% 驟降至 14%。</div>
-                <div>• <b>勝利貢獻值 (WAR 保全)</b>：為球隊額外保全約 <b>+0.82 勝利貢獻值 (WAR)</b>！</div>
-            </div>
-            """, unsafe_allow_html=True)
+            diff_hits = int(115 * 3.8 * (sim_avg.iloc[-1] - selected_df["cum_avg"].iloc[-1]))
+            st.success(f"🎯 **反事實推論結果**：若在先行警報發布時及時介入，整季預計多保全 **+{diff_hits} 支關鍵安打**，打擊率避免滑落 **+{sim_avg.iloc[-1] - selected_df['cum_avg'].iloc[-1]:.3f}**！")
+            
         else:
-            sim_era = selected_df["cum_era"].copy().values
-            for i in range(len(sim_era)):
-                if selected_df["game"].iloc[i] >= intervene_game_input:
-                    diff = selected_df["game"].iloc[i] - intervene_game_input
-                    sim_era[i] = min(2.45, sim_era[i] - min(0.95, diff * 0.03))
-                    
+            sim_era = selected_df["cum_era"].copy()
+            if sim_intervention:
+                c_start = int(selected_df["fatigue_phase_start"].iloc[0])
+                if c_start < 900:
+                    for idx in range(len(sim_era)):
+                        g = selected_df["game"].iloc[idx]
+                        if g >= c_start + 6:
+                            sim_era.iloc[idx] = max(1.80, sim_era.iloc[idx] - 0.85 * fatigue_recovery_rate)
+            
             fig_sim = go.Figure()
             fig_sim.add_trace(go.Scatter(
                 x=selected_df["game"].tolist(), y=selected_df["cum_era"].tolist(),
@@ -1609,22 +1800,14 @@ with tab3:
             )
             
             st.plotly_chart(fig_sim, use_container_width=True)
-            
-            st.markdown("""
-            <div class="benefit-callout">
-                <div style="font-size: 16px; font-weight: 700; margin-bottom: 8px;">🎯 模擬介入效益結算 (Pitcher Load Management Outcome)</div>
-                <div>• <b>避免防禦率失控</b>：及時跳過 1 次輪值並進行肩膀高壓氧修復，累積 ERA 壓制於 <code>2.35</code>（避免暴增至 3.45）。</div>
-                <div>• <b>預防受傷效益</b>：手肘 UCL 韌帶拉扯與肩胛夾擠代償風險由 84% 降至 16%。</div>
-                <div>• <b>球威保全</b>：季後賽四縫線均速保全於 153.2 km/h 高檔。</div>
-            </div>
-            """, unsafe_allow_html=True)
+            saved_runs = (selected_df["cum_era"].iloc[-1] - sim_era.iloc[-1]) * (115 * 6 / 9)
+            st.success(f"🎯 **反事實推論結果**：若及時跳過輪值一次，全季預計少失 **{saved_runs:.1f} 分自責分**，防禦率降低 **-{selected_df['cum_era'].iloc[-1] - sim_era.iloc[-1]:.2f}**！")
 
 # -----------------------------------------------------------------------------
-# TAB 4: 教練調度與防護建議卡 (Prescription & Export)
+# TAB 4: 教練調度與防護處方箋
 # -----------------------------------------------------------------------------
 with tab4:
-    st.markdown(f"### 🛡️ 教練調度與運動科學防護處方箋 (Actionable Prescription)")
-
+    st.markdown("### 🛡️ 教練團調度處方與運動科學防護指南")
     curr_player_mfi = selected_df["mfi"].iloc[-1]
 
     act_col1, act_col2, act_col3 = st.columns(3)
@@ -1632,23 +1815,25 @@ with tab4:
     with act_col1:
         if curr_player_mfi >= threshold_red:
             variant = "danger"
-            t_text = "🚨 戰術與陣容調度處方 (高風險介入)"
+            t_text = "🚨 【一級警戒】總教練出賽調度處方"
             b_text = """
-            • <b>防守位置卸載</b>：即日起移出守備先發名單，連續 3~4 場轉任指定打擊 (DH) 或安排完整輪休。<br>
-            • <b>棒次調整</b>：自第 1 棒調降至第 6~7 棒，降低高張力得點圈抗壓負擔與選球神經耗損。<br>
-            • <b>對戰對策</b>：今日避開對手極速型 (152km/h+) 速球派先發投手。
+            • <b>強制輪休</b>：立即自先發名單移出，未來 3 場安排完全輪休或僅限 9 局代打。<br>
+            • <b>守備負擔減免</b>：若維持出賽，必須轉任指定打擊 (DH)，嚴禁參與高耗能外野守備。<br>
+            • <b>跑壘戰術解除</b>：取消盜壘與打帶跑戰術執行授權，保護下肢肌腱。
             """
         elif curr_player_mfi >= threshold_yellow:
             variant = "warning"
-            t_text = "⚠️ 戰術與陣容調度處方 (觀察期管理)"
+            t_text = "🟡 【二級觀察】守備局數調控處方"
             b_text = """
-            • <b>局數管控</b>：領先或落後 4 分以上時，於第 7 局提前替補退場休息。<br>
-            • <b>戰術頻率</b>：減少盜壘與積極跑壘指示，維持體力能量儲備。
+            • <b>指定打擊輪替</b>：本週 5 場賽事中，安排 2 場擔任指定打擊 (DH)。<br>
+            • <b>提早退場機制</b>：若比分領先超過 4 分，於第 7 局安排守備組替換退場。<br>
+            • <b>棒次後移</b>：暫時由第 1~3 棒主力打線移至第 6 棒，降低得點圈心理抗壓負荷。
             """
         else:
             variant = "info"
-            t_text = "✅ 戰術與陣容調度處方 (體能優良)"
+            t_text = "🟢 【常態運作】全速出賽綠燈授權"
             b_text = """
+            • <b>完全戰力釋放</b>：中樞神經系統與快縮肌反應維持巔峰，無疲勞掩飾風險。<br>
             • <b>正常先發</b>：可完全維持常規守備與第 1~3 棒主力進攻戰術授權。<br>
             • <b>持續追蹤</b>：每週一例行性檢測 MFI 趨勢。
             """
@@ -1657,52 +1842,56 @@ with tab4:
     with act_col2:
         if curr_player_mfi >= threshold_red:
             variant = "danger"
-            t_text2 = "🏋️ 賽前訓練負荷管制 (減量 60%)"
-            b_text2 = """
-            • <b>打擊練習 (BP) 減量</b>：取消賽前發球機高張力實戰打擊，強制由 50 球減少至 15 球純意象揮棒。<br>
-            • <b>禁用加重棒</b>：全面暫停轉體重力加重棒超負荷訓練，防止前臂旋前肌群過度代償。<br>
-            • <b>神經視覺替代訓練</b>：改採 VR 視知覺眼動儀進行 10 分鐘低肢體負荷的好壞球辨識。
+            t_text = "🏋️ 【阻斷課表】打擊教練訓練調整處方"
+            b_text = """
+            • <b>打擊練習降載</b>：全面暫停賽前 5 組 Free Batting，改為 2 組短程 Tee 擊球。<br>
+            • <b>特打訓練取消</b>：全面禁止賽前或賽後加練特打。<br>
+            • <b>好球帶感知校準</b>：利用 VR 虛擬實境追蹤系統，進行 15 分鐘純視覺好球辨識訓練。
             """
         elif curr_player_mfi >= threshold_yellow:
             variant = "warning"
-            t_text2 = "🏋️ 賽前訓練負荷管制 (減量 30%)"
-            b_text2 = """
-            • <b>打擊練習調節</b>：限制賽前 Live BP 揮棒上限 30 次，增加柔軟度動態伸展。<br>
-            • <b>重訓課表調控</b>：以維持性等長收縮 (Isometric) 取代大重量向心爆發課表。
+            t_text = "🏋️ 【量級管控】肌力體能訓練調整處方"
+            b_text = """
+            • <b>重訓強度降低 30%</b>：主運動組數由 4 組縮減為 2 組，以維持爆發力為主。<br>
+            • <b>增強式訓練暫停</b>：暫停跳箱與深度跳躍等高離心收縮項目。<br>
+            • <b>核心抗旋轉強化</b>：專注於低衝擊度的核心與旋轉肌群控制。
             """
         else:
             variant = "info"
-            t_text2 = "🏋️ 賽前訓練負荷管制 (正常維護)"
-            b_text2 = """
+            t_text = "🏋️ 【例行維護】週期化力量強化課表"
+            b_text = """
+            • <b>維持標準訓練量</b>：生理神經反應良好，可依既定課表進行中高強度重訓。<br>
             • <b>常態化課表</b>：按選手個人週期化重訓課表執行即可。<br>
             • <b>神經啟動</b>：賽前常規 15 分鐘速度敏捷繩梯與快縮肌啟動。
             """
-        st.markdown(render_theme_action_card(t_text2, b_text2, variant), unsafe_allow_html=True)
+        st.markdown(render_theme_action_card(t_text, b_text, variant), unsafe_allow_html=True)
 
     with act_col3:
         if curr_player_mfi >= threshold_red:
             variant = "danger"
-            t_text3 = "🔬 運科防護與生物力學檢測"
-            b_text3 = """
-            • <b>測力板 CMJ 檢測</b>：賽前立即執行反向跳 (CMJ)，監控離心發力率 (RFD) 兩側不對稱指數 (若 >10% 亮紅燈)。<br>
-            • <b>筋膜與關節度評估</b>：檢查胸椎旋轉活動度與後側肩關節內旋角度 (GIRD)，預防拉傷。<br>
-            • <b>深度恢復處方</b>：安排超低溫冷凍艙 (Cryotherapy) 3 分鐘與高壓氧艙治療，確保睡眠監控達 8.5 小時以上。
+            t_text = "🩺 【緊急修復】防護員物理治療介入處方"
+            b_text = """
+            • <b>冷熱交替浸泡</b>：賽後即刻執行 12 分鐘對比浴 (Contrast Bath Therapy)。<br>
+            • <b>神經肌肉放鬆</b>：針對腰薦椎豎脊肌與旋轉肌群進行 30 分鐘深層筋膜刀放鬆。<br>
+            • <b>血流阻斷恢復</b>：賽後進行 BFR 低阻力主動伸展，加速代謝副產物清除。
             """
         elif curr_player_mfi >= threshold_yellow:
             variant = "warning"
-            t_text3 = "🔬 運科防護與生物力學檢測"
-            b_text3 = """
-            • <b>自主神經 HRV 檢測</b>：持續追蹤清晨靜息心率變異度 (HRV-rMSSD) 是否連續 3 天下降。<br>
-            • <b>筋膜放鬆</b>：賽後強制執行 20 分鐘下肢氣壓式加壓腿套 (NormaTec) 循環恢復。
+            t_text = "🩺 【預防保養】生物力學檢測與防護處方"
+            b_text = """
+            • <b>關節活動度 (ROM) 篩檢</b>：重點檢測胸椎旋轉角度與髖關節內外旋活動度。<br>
+            • <b>淋巴引流氣壓靴</b>：賽前與賽後各使用 NormaTec 氣壓靴 20 分鐘。<br>
+            • <b>睡眠監測加強</b>：睡眠時間確保達 8.5 小時，必要時補充電解質與鎂劑。
             """
         else:
             variant = "info"
-            t_text3 = "🔬 運科防護與生物力學檢測"
-            b_text3 = """
+            t_text = "🩺 【健康監控】例行防護與疲勞恢復"
+            b_text = """
+            • <b>常規保養流程</b>：賽後維持常態性伸展與冰敷保養。<br>
             • <b>例行保養</b>：常態性賽後肩關節/手肘冰熱敷交替與軟組織滾筒放鬆。<br>
             • <b>睡眠品質良好</b>：心率變異度與肌肉張力指數維持於標準綠燈區間。
             """
-        st.markdown(render_theme_action_card(t_text3, b_text3, variant), unsafe_allow_html=True)
+        st.markdown(render_theme_action_card(t_text, b_text, variant), unsafe_allow_html=True)
 
     st.write("")
     clean_b_text = b_text.replace("<b>", "").replace("</b>", "").replace("<br>", "\n   ")
@@ -1710,16 +1899,14 @@ with tab4:
     clean_b_text3 = b_text3.replace("<b>", "").replace("</b>", "").replace("<br>", "\n   ")
     
     export_content = f"""=============================================================================
-⚾ MFEWS 賽季微疲勞先行調度與運科防護處方箋
+【MFEWS 賽季微疲勞先行預警系統】專屬調度與防護處方箋
+球隊：{st.session_state['selected_team']} | 名單層級：一軍登錄名單
+球員姓名：{selected_player} ({selected_df['pos'].iloc[0]})
+產生日程：{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+微疲勞指數 (MFI)：{curr_player_mfi:.1f} | 狀態：{selected_df['status_now'].iloc[-1]}
 =============================================================================
-球員姓名：{selected_player}
-守備位置：{selected_df["pos"].iloc[0]}
-當前 MFI 指數：{curr_player_mfi:.1f} / 100
-警戒門檻：高風險 >= {threshold_red} | 觀察期 >= {threshold_yellow}
-診斷判定：{'🔴 高風險預警' if curr_player_mfi >= threshold_red else ('🟡 觀察期' if curr_player_mfi >= threshold_yellow else '🟢 體能正常')}
-處方輸出時間：{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
-=============================================================================
-【1. 戰術與陣容調度處方】：
+
+【1. 總教練出賽調度處方】：
    {clean_b_text.strip()}
 
 【2. 賽前訓練負荷管制處方】：
@@ -1730,7 +1917,7 @@ with tab4:
 =============================================================================
 """
     st.download_button(
-        label=f"📥 一鍵下載【{selected_player}】運科調度處方箋 (Export Prescription TXT)",
+        label=f"📥 一鍵下載【{selected_player}】運科調度處方箋",
         data=export_content,
         file_name=f"MFEWS_Prescription_{selected_player}_{datetime.now().strftime('%Y%m%d')}.txt",
         mime="text/plain",
