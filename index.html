@@ -170,6 +170,7 @@ import numpy as np
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from datetime import datetime, timedelta
+import textwrap
 
 # =============================================================================
 # 0. 藍白紅經典棒球視覺系統 Design Tokens (RB.png Palette: Navy, White, Crimson)
@@ -504,16 +505,16 @@ st.markdown("""
         100% { box-shadow: 0 0 0 0 rgba(232, 56, 61, 0); }
     }
 
-    /* 球員卡容器與卡片基礎造型 */
+        /* 球員字卡基礎造型 (預設未選取：乾淨白底、無淺藍背景、無深藍外框) */
     .player-card {
-        background: var(--theme-color-surface-container);
-        border: 2px solid var(--theme-color-outline-variant);
+        background: #FFFFFF !important;
+        border: 1.5px solid #CBD5E1 !important;
         border-radius: var(--theme-shape-md);
-        padding: 16px 10px;
+        padding: 13px 8px;
         text-align: center;
-        box-shadow: var(--theme-elevation-1);
-        transition: all 0.22s ease;
-        min-height: 114px;
+        box-shadow: 0 1px 3px rgba(10, 44, 81, 0.05);
+        transition: all 0.2s ease;
+        min-height: 110px;
         box-sizing: border-box;
         display: flex;
         flex-direction: column;
@@ -521,40 +522,78 @@ st.markdown("""
         align-items: center;
         cursor: pointer;
         user-select: none;
-    }
-
-    .player-card.player-card-active {
-        border-color: var(--theme-color-primary) !important;
-        background-color: var(--theme-color-primary-container) !important;
-        box-shadow: 0 4px 14px rgba(10, 44, 81, 0.22) !important;
-        transform: translateY(-2px);
-    }
-
-    .player-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 6px 18px rgba(10, 44, 81, 0.16);
-        border-color: var(--theme-color-primary);
+        margin-bottom: 6px;
+        position: relative;
     }
 
     .player-name {
-        font-size: 16px;
+        font-size: 15px;
         font-weight: 800;
-        color: var(--theme-color-primary);
-        margin-bottom: 2px;
+        color: #0A2C51;
+        margin-bottom: 3px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        transition: color 0.2s ease;
     }
 
     .player-pos {
-        font-size: 11.5px;
-        color: var(--theme-color-on-surface-variant);
-        margin-bottom: 8px;
+        font-size: 11px;
+        color: #475569;
+        margin-bottom: 6px;
+        white-space: nowrap;
+        transition: color 0.2s ease;
     }
 
-    /* 將按鈕化為隱形全覆蓋層，覆蓋於整張卡片上方，實現直接點擊卡片即可切換 */
-    div[data-testid="column"]:has(.player-card) {
+    /* 點選切換選取狀態 (Active：背景直接變深藍、球員名字與守備名稱反白純白) */
+    .player-card.player-card-active {
+        background: #0A2C51 !important;
+        border: 2px solid #0A2C51 !important;
+        box-shadow: 0 6px 18px rgba(10, 44, 81, 0.28) !important;
+        transform: translateY(-2px);
+    }
+
+    .player-card.player-card-active .player-name {
+        color: #FFFFFF !important;
+    }
+
+    .player-card.player-card-active .player-pos {
+        color: #E2ECF8 !important;
+    }
+
+    /* 懸停效果 (未選取時微浮升) */
+    .player-card:not(.player-card-active):hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 12px rgba(10, 44, 81, 0.12);
+        border-color: #0A2C51 !important;
+    }
+
+    /* 徹底移除字卡下方按鈕：將按鈕容器抽離排版，以透明層 100% 覆蓋整張字卡 */
+    div[data-testid="stColumn"]:has(.player-card),
+    div[data-testid*="olumn"]:has(.player-card) {
         position: relative !important;
     }
 
-    div[data-testid="column"]:has(.player-card) .stButton {
+    /* 隱藏並抽離包含按鈕的第二個 element-container，消除下方任何實體按鈕與多餘空白高度 */
+    div[data-testid="stColumn"]:has(.player-card) div[data-testid="element-container"]:has(.stButton),
+    div[data-testid="stColumn"]:has(.player-card) .element-container:has(.stButton),
+    div[data-testid*="olumn"]:has(.player-card) div[data-testid="element-container"]:has(.stButton),
+    div[data-testid*="olumn"]:has(.player-card) .element-container:has(.stButton) {
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        min-height: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        z-index: 5 !important;
+    }
+
+    div[data-testid="stColumn"]:has(.player-card) .stButton,
+    div[data-testid*="olumn"]:has(.player-card) .stButton {
         position: absolute !important;
         top: 0 !important;
         left: 0 !important;
@@ -562,13 +601,16 @@ st.markdown("""
         height: 100% !important;
         margin: 0 !important;
         padding: 0 !important;
-        z-index: 10 !important;
     }
 
-    div[data-testid="column"]:has(.player-card) .stButton > button {
+    div[data-testid="stColumn"]:has(.player-card) .stButton > button,
+    div[data-testid*="olumn"]:has(.player-card) .stButton > button {
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
         width: 100% !important;
         height: 100% !important;
-        min-height: 114px !important;
+        min-height: 100% !important;
         opacity: 0 !important;
         background: transparent !important;
         border: none !important;
@@ -576,7 +618,108 @@ st.markdown("""
         padding: 0 !important;
         margin: 0 !important;
         font-size: 0 !important;
+        line-height: 0 !important;
+        color: transparent !important;
         box-shadow: none !important;
+        overflow: hidden !important;
+    }
+
+    div[data-testid="stColumn"]:has(.player-card) .stButton > button *,
+    div[data-testid*="olumn"]:has(.player-card) .stButton > button * {
+        display: none !important;
+    }
+
+    /* 手機與平板專屬響應式排版優化 (Responsive Optimization) */
+    @media (max-width: 1024px) and (min-width: 769px) {
+        /* 平板版：球員卡每行 4 欄 */
+        div[data-testid="stHorizontalBlock"]:has(.player-card) {
+            display: flex !important;
+            flex-wrap: wrap !important;
+            gap: 8px !important;
+        }
+        div[data-testid="stHorizontalBlock"]:has(.player-card) > div[data-testid="stColumn"] {
+            flex: 1 1 calc(25% - 8px) !important;
+            min-width: calc(25% - 8px) !important;
+            max-width: calc(25% - 8px) !important;
+        }
+        div[data-testid="stHorizontalBlock"]:has(.theme-kpi-card) > div[data-testid="stColumn"] {
+            flex: 1 1 calc(50% - 10px) !important;
+            min-width: calc(50% - 10px) !important;
+            margin-bottom: 8px !important;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .war-room-header {
+            padding: 14px 12px !important;
+        }
+        .war-room-title {
+            font-size: 18px !important;
+            line-height: 1.35 !important;
+        }
+        .war-room-subtitle {
+            font-size: 12px !important;
+        }
+        
+        /* 手機版：KPI 卡片改為 2 欄排列 */
+        div[data-testid="stHorizontalBlock"]:has(.theme-kpi-card) {
+            display: flex !important;
+            flex-wrap: wrap !important;
+            gap: 8px !important;
+        }
+        div[data-testid="stHorizontalBlock"]:has(.theme-kpi-card) > div[data-testid="stColumn"] {
+            flex: 1 1 calc(50% - 8px) !important;
+            min-width: calc(50% - 8px) !important;
+            max-width: calc(50% - 8px) !important;
+            margin-bottom: 6px !important;
+        }
+        .theme-kpi-card {
+            padding: 12px 10px !important;
+        }
+        .theme-kpi-card .kpi-value {
+            font-size: 22px !important;
+        }
+        
+        /* 手機版：球員卡自動折行，每行 2 欄 */
+        div[data-testid="stHorizontalBlock"]:has(.player-card) {
+            display: flex !important;
+            flex-wrap: wrap !important;
+            gap: 6px !important;
+        }
+        div[data-testid="stHorizontalBlock"]:has(.player-card) > div[data-testid="stColumn"] {
+            flex: 1 1 calc(50% - 6px) !important;
+            min-width: calc(50% - 6px) !important;
+            max-width: calc(50% - 6px) !important;
+        }
+        .player-card {
+            min-height: 94px !important;
+            padding: 10px 4px !important;
+            margin-bottom: 4px !important;
+        }
+        .player-name {
+            font-size: 13.5px !important;
+        }
+        .player-pos {
+            font-size: 10px !important;
+            margin-bottom: 4px !important;
+        }
+        
+        /* 手機版：處方卡改為 1 欄排列 */
+        div[data-testid="stHorizontalBlock"]:has(.theme-action-card) {
+            display: flex !important;
+            flex-wrap: wrap !important;
+            gap: 12px !important;
+        }
+        div[data-testid="stHorizontalBlock"]:has(.theme-action-card) > div[data-testid="stColumn"] {
+            flex: 1 1 100% !important;
+            min-width: 100% !important;
+        }
+        
+        /* 診斷表格平滑觸控滾動 */
+        .diag-table th, .diag-table td {
+            padding: 8px 10px !important;
+            font-size: 12px !important;
+        }
     }
 
     /* 建議行動處方卡 (左邊條顏色) */
@@ -874,13 +1017,13 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =============================================================================
-# 2. 棒球微疲勞先行特徵模擬引擎 (CPBL 6 隊一軍球員資料庫，預設味全龍)
+# 2. 棒球微疲勞先行特徵模擬引擎 (CPBL 6 隊完整一軍與二軍球員資料庫，預設味全龍)
 # =============================================================================
 @st.cache_data
 def generate_baseball_season_data():
     """
-    產生中華職棒 6 球團共 36 位代表性一軍主力球員（打者與投手）全季 115 場賽事的微觀運動學特徵數據。
-    預設球隊為「味全龍」，包含當家球星吉力吉撈．鞏冠、李凱威、劉基鴻、郭天信、徐若熙、陳冠偉等一軍名單。
+    產生中華職棒 6 球團共 252 位真實球員（包含各隊 26 位一軍主力球員與 16 位二軍培訓球員）全季 115 場賽事的微觀運動學特徵數據。
+    預設球隊為「味全龍」，涵蓋吉力吉撈．鞏冠、李凱威、劉基鴻、徐若熙等完整陣容。
     """
     np.random.seed(42)
     start_date = datetime(2026, 4, 1)
@@ -890,7 +1033,7 @@ def generate_baseball_season_data():
     
     players_data = {}
     
-    def create_batter_data(name, team, pos, base_os, base_zw, base_hh, f_start, f_end, base_avg):
+    def create_batter_data(name, team, pos, base_os, base_zw, base_hh, f_start, f_end, base_avg, roster="一軍"):
         fatigue = np.zeros(games_count)
         if f_start < 900:
             for i, g in enumerate(game_numbers):
@@ -927,7 +1070,7 @@ def generate_baseball_season_data():
             "game": game_numbers,
             "date": dates,
             "team": team,
-            "roster": "一軍名單",
+            "roster": roster,
             "player": name,
             "pos": pos,
             "role_type": "打者",
@@ -943,7 +1086,7 @@ def generate_baseball_season_data():
             "performance_crash_point": f_end if f_start < 900 else 999,
         })
 
-    def create_pitcher_data(name, team, pos, base_disp, base_velo, base_ivb, f_start, f_end, base_era):
+    def create_pitcher_data(name, team, pos, base_disp, base_velo, base_ivb, f_start, f_end, base_era, roster="一軍"):
         fatigue = np.zeros(games_count)
         if f_start < 900:
             for i, g in enumerate(game_numbers):
@@ -974,7 +1117,7 @@ def generate_baseball_season_data():
             "game": game_numbers,
             "date": dates,
             "team": team,
-            "roster": "一軍名單",
+            "roster": roster,
             "player": name,
             "pos": pos,
             "role_type": "投手",
@@ -993,53 +1136,264 @@ def generate_baseball_season_data():
             "performance_crash_point": f_end if f_start < 900 else 999,
         })
 
-    # 1. 味全龍 (Wei Chuan Dragons) - 預設球隊
-    players_data["吉力吉撈．鞏冠"] = create_batter_data("吉力吉撈．鞏冠", "味全龍", "C / 捕手", 0.30, 0.15, 0.46, 62, 76, 0.295)
-    players_data["李凱威"] = create_batter_data("李凱威", "味全龍", "2B / 內野手", 0.22, 0.08, 0.38, 999, 999, 0.312)
-    players_data["劉基鴻"] = create_batter_data("劉基鴻", "味全龍", "3B / 內野手", 0.28, 0.14, 0.44, 52, 66, 0.282)
-    players_data["郭天信"] = create_batter_data("郭天信", "味全龍", "CF / 外野手", 0.26, 0.11, 0.39, 74, 86, 0.298)
-    players_data["徐若熙"] = create_pitcher_data("徐若熙", "味全龍", "SP / 先發投手", 1.8, 153.2, 17.5, 999, 999, 2.15)
-    players_data["陳冠偉"] = create_pitcher_data("陳冠偉", "味全龍", "CP / 救援投手", 1.9, 149.0, 18.2, 80, 92, 1.85)
-
-    # 2. 統一7-ELEVEn獅 (Uni-President 7-Eleven Lions)
-    players_data["陳傑憲"] = create_batter_data("陳傑憲", "統一7-ELEVEn獅", "CF / 外野手", 0.22, 0.085, 0.41, 48, 60, 0.345)
-    players_data["林安可"] = create_batter_data("林安可", "統一7-ELEVEn獅", "RF / 外野手", 0.29, 0.15, 0.47, 65, 78, 0.285)
-    players_data["邱智呈"] = create_batter_data("邱智呈", "統一7-ELEVEn獅", "LF / 外野手", 0.23, 0.09, 0.37, 999, 999, 0.320)
-    players_data["潘傑楷"] = create_batter_data("潘傑楷", "統一7-ELEVEn獅", "3B / 內野手", 0.27, 0.13, 0.42, 70, 82, 0.290)
-    players_data["古林睿煬"] = create_pitcher_data("古林睿煬", "統一7-ELEVEn獅", "SP / 先發投手", 1.8, 153.5, 17.5, 70, 82, 2.05)
-    players_data["勝騎士"] = create_pitcher_data("勝騎士", "統一7-ELEVEn獅", "SP / 先發投手", 1.9, 150.5, 16.8, 999, 999, 2.30)
-
-    # 3. 中信兄弟 (CTBC Brothers)
-    players_data["江坤宇"] = create_batter_data("江坤宇", "中信兄弟", "SS / 內野手", 0.23, 0.09, 0.35, 999, 999, 0.315)
-    players_data["岳政華"] = create_batter_data("岳政華", "中信兄弟", "CF / 外野手", 0.28, 0.13, 0.40, 68, 80, 0.275)
-    players_data["王威晨"] = create_batter_data("王威晨", "中信兄弟", "3B / 內野手", 0.24, 0.10, 0.38, 75, 87, 0.305)
-    players_data["許基宏"] = create_batter_data("許基宏", "中信兄弟", "1B / 內野手", 0.27, 0.14, 0.45, 60, 72, 0.288)
-    players_data["德保拉"] = create_pitcher_data("德保拉", "中信兄弟", "SP / 先發投手", 1.9, 149.8, 16.5, 72, 85, 2.65)
-    players_data["吳俊偉"] = create_pitcher_data("吳俊偉", "中信兄弟", "CP / 救援投手", 2.0, 151.2, 17.0, 78, 90, 2.10)
-
-    # 4. 樂天桃猿 (Rakuten Monkeys)
-    players_data["林立"] = create_batter_data("林立", "樂天桃猿", "2B / 內野手", 0.27, 0.13, 0.47, 72, 84, 0.335)
-    players_data["陳晨威"] = create_batter_data("陳晨威", "樂天桃猿", "CF / 外野手", 0.25, 0.10, 0.36, 80, 92, 0.310)
-    players_data["廖健富"] = create_batter_data("廖健富", "樂天桃猿", "DH / 指定打擊", 0.28, 0.14, 0.46, 64, 76, 0.300)
-    players_data["梁家榮"] = create_batter_data("梁家榮", "樂天桃猿", "3B / 內野手", 0.26, 0.11, 0.41, 999, 999, 0.295)
-    players_data["威能帝"] = create_pitcher_data("威能帝", "樂天桃猿", "SP / 先發投手", 1.8, 152.0, 17.2, 999, 999, 2.45)
-    players_data["黃子鵬"] = create_pitcher_data("黃子鵬", "樂天桃猿", "SP / 先發投手", 1.9, 142.5, 15.5, 76, 88, 3.10)
-
-    # 5. 富邦悍將 (Fubon Guardians)
-    players_data["張育成"] = create_batter_data("張育成", "富邦悍將", "SS / 內野手", 0.26, 0.12, 0.49, 70, 82, 0.298)
-    players_data["申皓瑋"] = create_batter_data("申皓瑋", "富邦悍將", "CF / 外野手", 0.30, 0.16, 0.42, 60, 72, 0.265)
-    players_data["王正棠"] = create_batter_data("王正棠", "富邦悍將", "2B / 內野手", 0.24, 0.09, 0.38, 999, 999, 0.308)
-    players_data["董子恩"] = create_batter_data("董子恩", "富邦悍將", "3B / 內野手", 0.22, 0.08, 0.34, 999, 999, 0.285)
-    players_data["富藍戈"] = create_pitcher_data("富藍戈", "富邦悍將", "RP / 後援投手", 1.7, 157.5, 18.0, 999, 999, 1.95)
-    players_data["江少慶"] = create_pitcher_data("江少慶", "富邦悍將", "SP / 先發投手", 2.1, 149.0, 16.2, 65, 78, 3.40)
-
-    # 6. 台鋼雄鷹 (TSG Hawks)
-    players_data["王柏融"] = create_batter_data("王柏融", "台鋼雄鷹", "LF / 外野手", 0.27, 0.13, 0.44, 68, 80, 0.285)
-    players_data["魔鷹"] = create_batter_data("魔鷹", "台鋼雄鷹", "1B / 內野手", 0.31, 0.18, 0.52, 75, 87, 0.305)
-    players_data["曾子祐"] = create_batter_data("曾子祐", "台鋼雄鷹", "SS / 內野手", 0.24, 0.09, 0.37, 999, 999, 0.298)
-    players_data["陳文杰"] = create_batter_data("陳文杰", "台鋼雄鷹", "CF / 外野手", 0.28, 0.12, 0.40, 72, 84, 0.272)
-    players_data["哈瑪星"] = create_pitcher_data("哈瑪星", "台鋼雄鷹", "SP / 先發投手", 1.9, 148.5, 16.8, 999, 999, 2.75)
-    players_data["後勁"] = create_pitcher_data("後勁", "台鋼雄鷹", "SP / 先發投手", 1.8, 147.0, 16.0, 999, 999, 2.50)
+    # 味全龍
+    players_data["吉力吉撈．鞏冠"] = create_batter_data("吉力吉撈．鞏冠", "味全龍", "C / 捕手", 0.3, 0.15, 0.46, 62, 76, 0.295, roster="一軍")
+    players_data["蔣少宏"] = create_batter_data("蔣少宏", "味全龍", "C / 捕手", 0.26, 0.12, 0.38, 999, 999, 0.268, roster="一軍")
+    players_data["劉時豪"] = create_batter_data("劉時豪", "味全龍", "C / 捕手", 0.24, 0.1, 0.34, 999, 999, 0.252, roster="一軍")
+    players_data["李凱威"] = create_batter_data("李凱威", "味全龍", "2B / 二壘手", 0.22, 0.08, 0.38, 999, 999, 0.312, roster="一軍")
+    players_data["劉基鴻"] = create_batter_data("劉基鴻", "味全龍", "3B / 三壘手", 0.28, 0.14, 0.44, 52, 66, 0.282, roster="一軍")
+    players_data["張政禹"] = create_batter_data("張政禹", "味全龍", "SS / 游擊手", 0.24, 0.1, 0.36, 999, 999, 0.275, roster="一軍")
+    players_data["拿莫．伊漾"] = create_batter_data("拿莫．伊漾", "味全龍", "1B / 一壘手", 0.31, 0.16, 0.43, 68, 80, 0.26, roster="一軍")
+    players_data["郭嚴文"] = create_batter_data("郭嚴文", "味全龍", "DH / 指定打擊", 0.25, 0.11, 0.41, 55, 70, 0.288, roster="一軍")
+    players_data["陳思仲"] = create_batter_data("陳思仲", "味全龍", "IF / 內野手", 0.26, 0.12, 0.35, 999, 999, 0.25, roster="一軍")
+    players_data["郭天信"] = create_batter_data("郭天信", "味全龍", "CF / 中外野手", 0.26, 0.11, 0.39, 74, 86, 0.298, roster="一軍")
+    players_data["林孝程"] = create_batter_data("林孝程", "味全龍", "LF / 左外野手", 0.25, 0.1, 0.35, 999, 999, 0.28, roster="一軍")
+    players_data["陳品捷"] = create_batter_data("陳品捷", "味全龍", "OF / 外野手", 0.26, 0.11, 0.37, 999, 999, 0.265, roster="一軍")
+    players_data["張祐銘"] = create_batter_data("張祐銘", "味全龍", "OF / 外野手", 0.27, 0.12, 0.36, 999, 999, 0.258, roster="一軍")
+    players_data["鄭鎧文"] = create_batter_data("鄭鎧文", "味全龍", "RF / 右外野手", 0.32, 0.18, 0.45, 60, 74, 0.24, roster="一軍")
+    players_data["冉承霖"] = create_batter_data("冉承霖", "味全龍", "OF / 外野手", 0.25, 0.1, 0.33, 999, 999, 0.262, roster="一軍")
+    players_data["徐若熙"] = create_pitcher_data("徐若熙", "味全龍", "SP / 先發投手", 1.8, 153.2, 17.5, 999, 999, 2.15, roster="一軍")
+    players_data["鋼龍"] = create_pitcher_data("鋼龍", "味全龍", "SP / 先發投手", 1.9, 148.5, 16.8, 75, 88, 2.85, roster="一軍")
+    players_data["伍鐸"] = create_pitcher_data("伍鐸", "味全龍", "SP / 先發投手", 1.8, 142.0, 15.2, 65, 78, 3.1, roster="一軍")
+    players_data["王維中"] = create_pitcher_data("王維中", "味全龍", "SP / 先發投手", 2.0, 146.5, 16.0, 70, 84, 3.35, roster="一軍")
+    players_data["艾璞樂"] = create_pitcher_data("艾璞樂", "味全龍", "SP / 先發投手", 1.9, 149.0, 16.5, 999, 999, 2.9, roster="一軍")
+    players_data["陳冠偉"] = create_pitcher_data("陳冠偉", "味全龍", "CP / 救援投手", 1.9, 149.0, 18.2, 80, 92, 1.85, roster="一軍")
+    players_data["銳歐"] = create_pitcher_data("銳歐", "味全龍", "RP / 中繼投手", 1.7, 147.5, 16.5, 72, 86, 1.95, roster="一軍")
+    players_data["林凱威"] = create_pitcher_data("林凱威", "味全龍", "SU / 佈局投手", 1.8, 150.5, 17.0, 76, 88, 2.45, roster="一軍")
+    players_data["呂偉晟"] = create_pitcher_data("呂偉晟", "味全龍", "RP / 中繼投手", 2.0, 148.0, 15.8, 999, 999, 3.2, roster="一軍")
+    players_data["羅華韋"] = create_pitcher_data("羅華韋", "味全龍", "RP / 中繼投手", 1.9, 143.5, 15.5, 999, 999, 3.4, roster="一軍")
+    players_data["趙璟榮"] = create_pitcher_data("趙璟榮", "味全龍", "RP / 中繼投手", 2.1, 146.0, 15.6, 70, 84, 3.65, roster="一軍")
+    players_data["瑪仕革斯．俄霸律尼"] = create_batter_data("瑪仕革斯．俄霸律尼", "味全龍", "1B / 一壘手", 0.29, 0.15, 0.42, 60, 75, 0.265, roster="二軍")
+    players_data["黃柏豪"] = create_batter_data("黃柏豪", "味全龍", "DH / 指定打擊", 0.3, 0.14, 0.4, 999, 999, 0.27, roster="二軍")
+    players_data["曾傳昇"] = create_batter_data("曾傳昇", "味全龍", "SS / 游擊手", 0.26, 0.12, 0.32, 70, 82, 0.245, roster="二軍")
+    players_data["石翔宇"] = create_batter_data("石翔宇", "味全龍", "IF / 內野手", 0.25, 0.1, 0.34, 999, 999, 0.255, roster="二軍")
+    players_data["陽念祖"] = create_batter_data("陽念祖", "味全龍", "IF / 內野手", 0.27, 0.13, 0.35, 999, 999, 0.248, roster="二軍")
+    players_data["全浩瑋"] = create_batter_data("全浩瑋", "味全龍", "C / 捕手", 0.26, 0.12, 0.33, 999, 999, 0.242, roster="二軍")
+    players_data["魏全"] = create_batter_data("魏全", "味全龍", "C / 捕手", 0.25, 0.11, 0.32, 999, 999, 0.238, roster="二軍")
+    players_data["邱辰"] = create_batter_data("邱辰", "味全龍", "OF / 外野手", 0.28, 0.14, 0.36, 68, 80, 0.252, roster="二軍")
+    players_data["林辰勳"] = create_batter_data("林辰勳", "味全龍", "C / 捕手", 0.26, 0.12, 0.35, 999, 999, 0.25, roster="二軍")
+    players_data["曹祐齊"] = create_pitcher_data("曹祐齊", "味全龍", "SP / 先發投手", 2.1, 145.0, 15.5, 65, 80, 3.6, roster="二軍")
+    players_data["廖任磊"] = create_pitcher_data("廖任磊", "味全龍", "RP / 後援投手", 2.3, 150.0, 15.8, 70, 85, 4.2, roster="二軍")
+    players_data["森榮鴻"] = create_pitcher_data("森榮鴻", "味全龍", "RP / 後援投手", 2.0, 146.0, 15.2, 999, 999, 3.8, roster="二軍")
+    players_data["吳俊杰"] = create_pitcher_data("吳俊杰", "味全龍", "SP / 先發投手", 2.2, 144.5, 15.0, 68, 82, 4.05, roster="二軍")
+    players_data["莊玉彬"] = create_pitcher_data("莊玉彬", "味全龍", "RP / 後援投手", 2.1, 145.5, 15.3, 999, 999, 3.9, roster="二軍")
+    players_data["林子昱"] = create_pitcher_data("林子昱", "味全龍", "SP / 先發投手", 2.0, 144.0, 15.4, 72, 86, 3.75, roster="二軍")
+    players_data["郭郁政"] = create_pitcher_data("郭郁政", "味全龍", "SP / 先發投手", 2.0, 143.0, 15.2, 66, 80, 3.85, roster="二軍")
+    # 統一7-ELEVEn獅
+    players_data["陳重羽"] = create_batter_data("陳重羽", "統一7-ELEVEn獅", "C / 捕手", 0.26, 0.12, 0.38, 62, 75, 0.27, roster="一軍")
+    players_data["林岱安"] = create_batter_data("林岱安", "統一7-ELEVEn獅", "C / 捕手", 0.25, 0.11, 0.36, 999, 999, 0.262, roster="一軍")
+    players_data["柯育民"] = create_batter_data("柯育民", "統一7-ELEVEn獅", "C / 捕手", 0.26, 0.12, 0.34, 999, 999, 0.255, roster="一軍")
+    players_data["陳傑憲"] = create_batter_data("陳傑憲", "統一7-ELEVEn獅", "CF / 中外野手", 0.22, 0.085, 0.41, 48, 60, 0.345, roster="一軍")
+    players_data["林安可"] = create_batter_data("林安可", "統一7-ELEVEn獅", "RF / 右外野手", 0.29, 0.15, 0.47, 65, 78, 0.285, roster="一軍")
+    players_data["邱智呈"] = create_batter_data("邱智呈", "統一7-ELEVEn獅", "LF / 左外野手", 0.23, 0.09, 0.37, 999, 999, 0.32, roster="一軍")
+    players_data["蘇智傑"] = create_batter_data("蘇智傑", "統一7-ELEVEn獅", "DH / 指定打擊", 0.26, 0.12, 0.43, 75, 88, 0.295, roster="一軍")
+    players_data["潘傑楷"] = create_batter_data("潘傑楷", "統一7-ELEVEn獅", "3B / 三壘手", 0.27, 0.13, 0.42, 70, 82, 0.29, roster="一軍")
+    players_data["陳重廷"] = create_batter_data("陳重廷", "統一7-ELEVEn獅", "2B / 二壘手", 0.24, 0.1, 0.36, 999, 999, 0.278, roster="一軍")
+    players_data["林益全"] = create_batter_data("林益全", "統一7-ELEVEn獅", "1B / 一壘手", 0.25, 0.11, 0.4, 55, 68, 0.282, roster="一軍")
+    players_data["許哲晏"] = create_batter_data("許哲晏", "統一7-ELEVEn獅", "SS / 游擊手", 0.25, 0.1, 0.35, 999, 999, 0.272, roster="一軍")
+    players_data["林靖凱"] = create_batter_data("林靖凱", "統一7-ELEVEn獅", "2B / 二壘手", 0.24, 0.09, 0.34, 999, 999, 0.28, roster="一軍")
+    players_data["胡金龍"] = create_batter_data("胡金龍", "統一7-ELEVEn獅", "DH / 指定打擊", 0.24, 0.09, 0.39, 58, 72, 0.288, roster="一軍")
+    players_data["林佳緯"] = create_batter_data("林佳緯", "統一7-ELEVEn獅", "OF / 外野手", 0.27, 0.13, 0.38, 999, 999, 0.265, roster="一軍")
+    players_data["唐肇廷"] = create_batter_data("唐肇廷", "統一7-ELEVEn獅", "OF / 外野手", 0.26, 0.11, 0.35, 999, 999, 0.258, roster="一軍")
+    players_data["古林睿煬"] = create_pitcher_data("古林睿煬", "統一7-ELEVEn獅", "SP / 先發投手", 1.8, 153.5, 17.5, 70, 82, 2.05, roster="一軍")
+    players_data["勝騎士"] = create_pitcher_data("勝騎士", "統一7-ELEVEn獅", "SP / 先發投手", 1.9, 150.5, 16.8, 999, 999, 2.3, roster="一軍")
+    players_data["羅昂"] = create_pitcher_data("羅昂", "統一7-ELEVEn獅", "SP / 先發投手", 1.8, 147.0, 16.2, 66, 80, 2.7, roster="一軍")
+    players_data["布雷克"] = create_pitcher_data("布雷克", "統一7-ELEVEn獅", "SP / 先發投手", 1.9, 146.0, 16.5, 999, 999, 2.85, roster="一軍")
+    players_data["裴瑞茲"] = create_pitcher_data("裴瑞茲", "統一7-ELEVEn獅", "RP / 中繼投手", 1.7, 152.0, 17.0, 999, 999, 1.8, roster="一軍")
+    players_data["陳韻文"] = create_pitcher_data("陳韻文", "統一7-ELEVEn獅", "CP / 救援投手", 2.0, 148.5, 16.5, 78, 90, 2.45, roster="一軍")
+    players_data["邱浩鈞"] = create_pitcher_data("邱浩鈞", "統一7-ELEVEn獅", "RP / 中繼投手", 1.9, 146.0, 16.0, 72, 85, 2.9, roster="一軍")
+    players_data["劉予承"] = create_pitcher_data("劉予承", "統一7-ELEVEn獅", "RP / 中繼投手", 2.0, 147.5, 16.2, 999, 999, 3.1, roster="一軍")
+    players_data["辛俊昇"] = create_pitcher_data("辛俊昇", "統一7-ELEVEn獅", "RP / 中繼投手", 1.9, 144.5, 15.8, 999, 999, 2.75, roster="一軍")
+    players_data["江承峰"] = create_pitcher_data("江承峰", "統一7-ELEVEn獅", "RP / 中繼投手", 1.9, 142.0, 15.5, 999, 999, 3.25, roster="一軍")
+    players_data["王鏡銘"] = create_pitcher_data("王鏡銘", "統一7-ELEVEn獅", "RP / 中繼投手", 2.1, 143.0, 15.4, 68, 82, 3.6, roster="一軍")
+    players_data["何恆佑"] = create_batter_data("何恆佑", "統一7-ELEVEn獅", "1B / 一壘手", 0.28, 0.13, 0.38, 999, 999, 0.26, roster="二軍")
+    players_data["林子豪"] = create_batter_data("林子豪", "統一7-ELEVEn獅", "3B / 三壘手", 0.25, 0.11, 0.41, 65, 78, 0.28, roster="二軍")
+    players_data["張偉聖"] = create_batter_data("張偉聖", "統一7-ELEVEn獅", "OF / 外野手", 0.27, 0.14, 0.35, 70, 84, 0.255, roster="二軍")
+    players_data["羅暐捷"] = create_batter_data("羅暐捷", "統一7-ELEVEn獅", "OF / 外野手", 0.29, 0.15, 0.36, 999, 999, 0.245, roster="二軍")
+    players_data["田子杰"] = create_batter_data("田子杰", "統一7-ELEVEn獅", "OF / 外野手", 0.28, 0.13, 0.34, 999, 999, 0.25, roster="二軍")
+    players_data["張聖豪"] = create_batter_data("張聖豪", "統一7-ELEVEn獅", "C / 捕手", 0.27, 0.13, 0.36, 999, 999, 0.248, roster="二軍")
+    players_data["施冠宇"] = create_batter_data("施冠宇", "統一7-ELEVEn獅", "1B / 一壘手", 0.29, 0.15, 0.39, 999, 999, 0.252, roster="二軍")
+    players_data["楊竣翔"] = create_batter_data("楊竣翔", "統一7-ELEVEn獅", "IF / 內野手", 0.26, 0.12, 0.33, 999, 999, 0.245, roster="二軍")
+    players_data["謝修銓"] = create_batter_data("謝修銓", "統一7-ELEVEn獅", "IF / 內野手", 0.25, 0.11, 0.32, 999, 999, 0.24, roster="二軍")
+    players_data["林子崴"] = create_pitcher_data("林子崴", "統一7-ELEVEn獅", "SP / 先發投手", 2.1, 143.0, 15.2, 60, 75, 3.9, roster="二軍")
+    players_data["姚杰宏"] = create_pitcher_data("姚杰宏", "統一7-ELEVEn獅", "SP / 先發投手", 2.2, 144.5, 15.0, 999, 999, 4.1, roster="二軍")
+    players_data["劉軒荅"] = create_pitcher_data("劉軒荅", "統一7-ELEVEn獅", "RP / 後援投手", 2.0, 145.0, 15.5, 72, 86, 3.5, roster="二軍")
+    players_data["李其峰"] = create_pitcher_data("李其峰", "統一7-ELEVEn獅", "RP / 後援投手", 2.1, 146.0, 15.3, 999, 999, 3.8, roster="二軍")
+    players_data["楊孟沅"] = create_pitcher_data("楊孟沅", "統一7-ELEVEn獅", "RP / 後援投手", 2.2, 143.5, 15.0, 999, 999, 4.25, roster="二軍")
+    players_data["鄭副豪"] = create_pitcher_data("鄭副豪", "統一7-ELEVEn獅", "RP / 後援投手", 2.1, 145.0, 15.2, 999, 999, 4.0, roster="二軍")
+    players_data["宋文華"] = create_pitcher_data("宋文華", "統一7-ELEVEn獅", "RP / 後援投手", 2.2, 142.5, 15.1, 999, 999, 4.3, roster="二軍")
+    # 中信兄弟
+    players_data["高宇杰"] = create_batter_data("高宇杰", "中信兄弟", "C / 捕手", 0.26, 0.12, 0.37, 999, 999, 0.265, roster="一軍")
+    players_data["徐博瑋"] = create_batter_data("徐博瑋", "中信兄弟", "C / 捕手", 0.25, 0.11, 0.34, 999, 999, 0.25, roster="一軍")
+    players_data["江坤宇"] = create_batter_data("江坤宇", "中信兄弟", "SS / 游擊手", 0.23, 0.09, 0.35, 999, 999, 0.315, roster="一軍")
+    players_data["岳東華"] = create_batter_data("岳東華", "中信兄弟", "2B / 二壘手", 0.26, 0.12, 0.37, 999, 999, 0.265, roster="一軍")
+    players_data["王威晨"] = create_batter_data("王威晨", "中信兄弟", "3B / 三壘手", 0.24, 0.1, 0.38, 75, 87, 0.305, roster="一軍")
+    players_data["許基宏"] = create_batter_data("許基宏", "中信兄弟", "1B / 一壘手", 0.27, 0.14, 0.45, 60, 72, 0.288, roster="一軍")
+    players_data["陳俊秀"] = create_batter_data("陳俊秀", "中信兄弟", "1B / 一壘手", 0.25, 0.11, 0.42, 65, 78, 0.292, roster="一軍")
+    players_data["岳政華"] = create_batter_data("岳政華", "中信兄弟", "CF / 中外野手", 0.28, 0.13, 0.4, 68, 80, 0.275, roster="一軍")
+    players_data["曾頌恩"] = create_batter_data("曾頌恩", "中信兄弟", "LF / 左外野手", 0.29, 0.15, 0.48, 72, 85, 0.302, roster="一軍")
+    players_data["詹子賢"] = create_batter_data("詹子賢", "中信兄弟", "DH / 指定打擊", 0.26, 0.12, 0.41, 58, 70, 0.28, roster="一軍")
+    players_data["陳子豪"] = create_batter_data("陳子豪", "中信兄弟", "RF / 右外野手", 0.28, 0.14, 0.46, 64, 76, 0.285, roster="一軍")
+    players_data["張志豪"] = create_batter_data("張志豪", "中信兄弟", "OF / 外野手", 0.29, 0.15, 0.44, 55, 68, 0.268, roster="一軍")
+    players_data["王政順"] = create_batter_data("王政順", "中信兄弟", "IF / 內野手", 0.26, 0.12, 0.38, 999, 999, 0.28, roster="一軍")
+    players_data["林吳晉瑋"] = create_batter_data("林吳晉瑋", "中信兄弟", "C / 捕手", 0.26, 0.11, 0.35, 999, 999, 0.26, roster="一軍")
+    players_data["周思齊"] = create_batter_data("周思齊", "中信兄弟", "DH / 指定打擊", 0.25, 0.1, 0.36, 50, 65, 0.26, roster="一軍")
+    players_data["德保拉"] = create_pitcher_data("德保拉", "中信兄弟", "SP / 先發投手", 1.9, 149.8, 16.5, 72, 85, 2.65, roster="一軍")
+    players_data["猛登"] = create_pitcher_data("猛登", "中信兄弟", "SP / 先發投手", 1.8, 151.0, 17.2, 999, 999, 2.5, roster="一軍")
+    players_data["克迪"] = create_pitcher_data("克迪", "中信兄弟", "SP / 先發投手", 1.9, 147.5, 16.0, 68, 82, 2.8, roster="一軍")
+    players_data["象騎士"] = create_pitcher_data("象騎士", "中信兄弟", "SP / 先發投手", 1.8, 150.0, 16.8, 999, 999, 2.6, roster="一軍")
+    players_data["鄭凱文"] = create_pitcher_data("鄭凱文", "中信兄弟", "SP / 先發投手", 2.0, 141.5, 15.0, 60, 74, 3.4, roster="一軍")
+    players_data["吳俊偉"] = create_pitcher_data("吳俊偉", "中信兄弟", "CP / 救援投手", 2.0, 151.2, 17.0, 78, 90, 2.1, roster="一軍")
+    players_data["呂彥青"] = create_pitcher_data("呂彥青", "中信兄弟", "RP / 中繼投手", 1.8, 146.5, 16.2, 70, 84, 2.35, roster="一軍")
+    players_data["王凱程"] = create_pitcher_data("王凱程", "中信兄弟", "RP / 中繼投手", 1.9, 147.0, 16.0, 999, 999, 2.5, roster="一軍")
+    players_data["李振昌"] = create_pitcher_data("李振昌", "中信兄弟", "RP / 中繼投手", 2.0, 145.5, 15.8, 999, 999, 2.9, roster="一軍")
+    players_data["謝榮豪"] = create_pitcher_data("謝榮豪", "中信兄弟", "RP / 後援投手", 2.0, 144.0, 15.0, 999, 999, 3.4, roster="一軍")
+    players_data["蔡齊哲"] = create_pitcher_data("蔡齊哲", "中信兄弟", "RP / 中繼投手", 1.9, 145.0, 15.5, 999, 999, 3.1, roster="一軍")
+    players_data["蘇緯達"] = create_batter_data("蘇緯達", "中信兄弟", "1B / 一壘手", 0.29, 0.15, 0.4, 62, 75, 0.258, roster="二軍")
+    players_data["黃韋盛"] = create_batter_data("黃韋盛", "中信兄弟", "IF / 內野手", 0.26, 0.11, 0.34, 999, 999, 0.25, roster="二軍")
+    players_data["馬鋼"] = create_batter_data("馬鋼", "中信兄弟", "3B / 三壘手", 0.27, 0.13, 0.33, 999, 999, 0.245, roster="二軍")
+    players_data["林書逸"] = create_batter_data("林書逸", "中信兄弟", "OF / 外野手", 0.26, 0.12, 0.36, 70, 82, 0.26, roster="二軍")
+    players_data["宋晟睿"] = create_batter_data("宋晟睿", "中信兄弟", "OF / 外野手", 0.25, 0.11, 0.38, 999, 999, 0.27, roster="二軍")
+    players_data["張仁瑋"] = create_batter_data("張仁瑋", "中信兄弟", "SS / 游擊手", 0.25, 0.1, 0.32, 999, 999, 0.248, roster="二軍")
+    players_data["陳統恩"] = create_batter_data("陳統恩", "中信兄弟", "C / 捕手", 0.26, 0.12, 0.33, 999, 999, 0.24, roster="二軍")
+    players_data["潘泓凱"] = create_batter_data("潘泓凱", "中信兄弟", "C / 捕手", 0.27, 0.13, 0.32, 999, 999, 0.235, roster="二軍")
+    players_data["楊祥禾"] = create_batter_data("楊祥禾", "中信兄弟", "IF / 內野手", 0.26, 0.11, 0.33, 999, 999, 0.242, roster="二軍")
+    players_data["魏碩成"] = create_pitcher_data("魏碩成", "中信兄弟", "SP / 先發投手", 2.1, 143.5, 15.2, 65, 78, 3.85, roster="二軍")
+    players_data["余謙"] = create_pitcher_data("余謙", "中信兄弟", "SP / 先發投手", 2.2, 146.0, 15.8, 72, 86, 4.15, roster="二軍")
+    players_data["盧孟揚"] = create_pitcher_data("盧孟揚", "中信兄弟", "SP / 先發投手", 2.1, 145.0, 15.5, 999, 999, 3.9, roster="二軍")
+    players_data["彭識穎"] = create_pitcher_data("彭識穎", "中信兄弟", "RP / 後援投手", 2.0, 141.0, 15.0, 999, 999, 4.0, roster="二軍")
+    players_data["陳琥"] = create_pitcher_data("陳琥", "中信兄弟", "RP / 後援投手", 2.2, 144.0, 15.2, 999, 999, 4.3, roster="二軍")
+    players_data["江忠城"] = create_pitcher_data("江忠城", "中信兄弟", "RP / 後援投手", 2.1, 146.0, 15.3, 999, 999, 3.95, roster="二軍")
+    players_data["廖乙忠"] = create_pitcher_data("廖乙忠", "中信兄弟", "SP / 先發投手", 2.1, 142.5, 15.0, 68, 82, 4.2, roster="二軍")
+    # 樂天桃猿
+    players_data["林泓育"] = create_batter_data("林泓育", "樂天桃猿", "C / 指定打擊", 0.27, 0.12, 0.42, 55, 68, 0.29, roster="一軍")
+    players_data["張閔勛"] = create_batter_data("張閔勛", "樂天桃猿", "C / 捕手", 0.26, 0.11, 0.36, 999, 999, 0.265, roster="一軍")
+    players_data["嚴宏鈞"] = create_batter_data("嚴宏鈞", "樂天桃猿", "C / 捕手", 0.25, 0.1, 0.35, 999, 999, 0.255, roster="一軍")
+    players_data["林立"] = create_batter_data("林立", "樂天桃猿", "2B / 二壘手", 0.27, 0.13, 0.47, 72, 84, 0.335, roster="一軍")
+    players_data["梁家榮"] = create_batter_data("梁家榮", "樂天桃猿", "3B / 三壘手", 0.26, 0.11, 0.41, 999, 999, 0.295, roster="一軍")
+    players_data["朱育賢"] = create_batter_data("朱育賢", "樂天桃猿", "1B / 一壘手", 0.28, 0.14, 0.45, 68, 80, 0.285, roster="一軍")
+    players_data["廖健富"] = create_batter_data("廖健富", "樂天桃猿", "DH / 指定打擊", 0.28, 0.14, 0.46, 64, 76, 0.3, roster="一軍")
+    players_data["馬傑森"] = create_batter_data("馬傑森", "樂天桃猿", "SS / 游擊手", 0.25, 0.11, 0.35, 999, 999, 0.268, roster="一軍")
+    players_data["陳晨威"] = create_batter_data("陳晨威", "樂天桃猿", "CF / 中外野手", 0.25, 0.1, 0.36, 80, 92, 0.31, roster="一軍")
+    players_data["成晉"] = create_batter_data("成晉", "樂天桃猿", "RF / 右外野手", 0.24, 0.09, 0.37, 999, 999, 0.29, roster="一軍")
+    players_data["余德龍"] = create_batter_data("余德龍", "樂天桃猿", "LF / 外野手", 0.26, 0.12, 0.34, 999, 999, 0.26, roster="一軍")
+    players_data["林智平"] = create_batter_data("林智平", "樂天桃猿", "IF / 內野手", 0.25, 0.1, 0.38, 52, 66, 0.282, roster="一軍")
+    players_data["林承飛"] = create_batter_data("林承飛", "樂天桃猿", "SS / 游擊手", 0.27, 0.13, 0.42, 66, 78, 0.272, roster="一軍")
+    players_data["馮健庭"] = create_batter_data("馮健庭", "樂天桃猿", "IF / 內野手", 0.25, 0.1, 0.35, 999, 999, 0.275, roster="一軍")
+    players_data["鍾玉成"] = create_batter_data("鍾玉成", "樂天桃猿", "OF / 外野手", 0.27, 0.12, 0.35, 999, 999, 0.26, roster="一軍")
+    players_data["威能帝"] = create_pitcher_data("威能帝", "樂天桃猿", "SP / 先發投手", 1.8, 152.0, 17.2, 999, 999, 2.45, roster="一軍")
+    players_data["魔神樂"] = create_pitcher_data("魔神樂", "樂天桃猿", "SP / 先發投手", 1.8, 148.0, 16.8, 74, 88, 2.3, roster="一軍")
+    players_data["霸威斯"] = create_pitcher_data("霸威斯", "樂天桃猿", "SP / 先發投手", 1.9, 149.5, 16.5, 999, 999, 3.1, roster="一軍")
+    players_data["黃子鵬"] = create_pitcher_data("黃子鵬", "樂天桃猿", "SP / 先發投手", 1.9, 142.5, 15.5, 76, 88, 3.1, roster="一軍")
+    players_data["曾仁和"] = create_pitcher_data("曾仁和", "樂天桃猿", "SP / 先發投手", 2.0, 145.0, 15.8, 62, 76, 3.8, roster="一軍")
+    players_data["陳柏豪"] = create_pitcher_data("陳柏豪", "樂天桃猿", "CP / 救援投手", 1.9, 149.5, 16.8, 78, 92, 2.25, roster="一軍")
+    players_data["王志煊"] = create_pitcher_data("王志煊", "樂天桃猿", "RP / 中繼投手", 1.7, 141.0, 16.2, 999, 999, 1.9, roster="一軍")
+    players_data["莊昕諺"] = create_pitcher_data("莊昕諺", "樂天桃猿", "RP / 中繼投手", 1.8, 147.0, 16.0, 72, 85, 2.35, roster="一軍")
+    players_data["蘇俊璋"] = create_pitcher_data("蘇俊璋", "樂天桃猿", "RP / 中繼投手", 1.9, 146.5, 15.8, 999, 999, 2.8, roster="一軍")
+    players_data["陳冠宇"] = create_pitcher_data("陳冠宇", "樂天桃猿", "RP / 中繼投手", 1.8, 145.5, 16.0, 999, 999, 2.5, roster="一軍")
+    players_data["賴胤豪"] = create_pitcher_data("賴胤豪", "樂天桃猿", "RP / 中繼投手", 2.0, 148.5, 16.2, 999, 999, 3.3, roster="一軍")
+    players_data["宋嘉翔"] = create_batter_data("宋嘉翔", "樂天桃猿", "C / 捕手", 0.26, 0.12, 0.37, 999, 999, 0.26, roster="二軍")
+    players_data["毛英傑"] = create_batter_data("毛英傑", "樂天桃猿", "C / 捕手", 0.27, 0.13, 0.33, 999, 999, 0.24, roster="二軍")
+    players_data["林耀煌"] = create_batter_data("林耀煌", "樂天桃猿", "OF / 外野手", 0.27, 0.12, 0.35, 999, 999, 0.25, roster="二軍")
+    players_data["邱丹"] = create_batter_data("邱丹", "樂天桃猿", "OF / 外野手", 0.28, 0.13, 0.34, 68, 80, 0.25, roster="二軍")
+    players_data["楊家勝"] = create_batter_data("楊家勝", "樂天桃猿", "IF / 內野手", 0.26, 0.11, 0.32, 999, 999, 0.245, roster="二軍")
+    players_data["董順傑"] = create_batter_data("董順傑", "樂天桃猿", "IF / 內野手", 0.27, 0.12, 0.33, 999, 999, 0.242, roster="二軍")
+    players_data["林政華"] = create_batter_data("林政華", "樂天桃猿", "OF / 外野手", 0.25, 0.1, 0.34, 999, 999, 0.26, roster="二軍")
+    players_data["邱鑫"] = create_batter_data("邱鑫", "樂天桃猿", "OF / 外野手", 0.26, 0.11, 0.35, 999, 999, 0.255, roster="二軍")
+    players_data["杜禹鋒"] = create_batter_data("杜禹鋒", "樂天桃猿", "IF / 內野手", 0.27, 0.13, 0.31, 999, 999, 0.238, roster="二軍")
+    players_data["邱駿威"] = create_pitcher_data("邱駿威", "樂天桃猿", "SP / 先發投手", 2.2, 147.0, 15.5, 66, 80, 4.0, roster="二軍")
+    players_data["舒治浩"] = create_pitcher_data("舒治浩", "樂天桃猿", "RP / 後援投手", 2.1, 146.5, 15.2, 999, 999, 3.9, roster="二軍")
+    players_data["葉家淇"] = create_pitcher_data("葉家淇", "樂天桃猿", "RP / 後援投手", 2.3, 149.0, 15.0, 70, 85, 4.5, roster="二軍")
+    players_data["劉昱言"] = create_pitcher_data("劉昱言", "樂天桃猿", "RP / 後援投手", 2.1, 143.5, 15.1, 999, 999, 4.1, roster="二軍")
+    players_data["范柏絜"] = create_pitcher_data("范柏絜", "樂天桃猿", "RP / 後援投手", 2.2, 144.0, 15.0, 999, 999, 4.25, roster="二軍")
+    players_data["賴知頎"] = create_pitcher_data("賴知頎", "樂天桃猿", "RP / 後援投手", 2.1, 145.0, 15.2, 999, 999, 4.15, roster="二軍")
+    players_data["林華偉"] = create_pitcher_data("林華偉", "樂天桃猿", "SP / 先發投手", 2.1, 144.5, 15.3, 999, 999, 3.95, roster="二軍")
+    # 富邦悍將
+    players_data["戴培峰"] = create_batter_data("戴培峰", "富邦悍將", "C / 捕手", 0.25, 0.11, 0.37, 72, 85, 0.275, roster="一軍")
+    players_data["張進德"] = create_batter_data("張進德", "富邦悍將", "C / 捕手", 0.26, 0.12, 0.4, 58, 70, 0.27, roster="一軍")
+    players_data["張育成"] = create_batter_data("張育成", "富邦悍將", "SS / 游擊手", 0.26, 0.12, 0.49, 70, 82, 0.298, roster="一軍")
+    players_data["王正棠"] = create_batter_data("王正棠", "富邦悍將", "2B / 二壘手", 0.24, 0.09, 0.38, 999, 999, 0.308, roster="一軍")
+    players_data["董子恩"] = create_batter_data("董子恩", "富邦悍將", "3B / 三壘手", 0.22, 0.08, 0.34, 999, 999, 0.285, roster="一軍")
+    players_data["范國宸"] = create_batter_data("范國宸", "富邦悍將", "1B / 一壘手", 0.28, 0.14, 0.41, 65, 78, 0.26, roster="一軍")
+    players_data["李宗賢"] = create_batter_data("李宗賢", "富邦悍將", "3B / 三壘手", 0.25, 0.1, 0.36, 68, 80, 0.27, roster="一軍")
+    players_data["申皓瑋"] = create_batter_data("申皓瑋", "富邦悍將", "CF / 中外野手", 0.3, 0.16, 0.42, 60, 72, 0.265, roster="一軍")
+    players_data["高國麟"] = create_batter_data("高國麟", "富邦悍將", "DH / 指定打擊", 0.27, 0.13, 0.43, 58, 70, 0.28, roster="一軍")
+    players_data["陳真"] = create_batter_data("陳真", "富邦悍將", "LF / 左外野手", 0.28, 0.14, 0.44, 999, 999, 0.268, roster="一軍")
+    players_data["孔念恩"] = create_batter_data("孔念恩", "富邦悍將", "RF / 右外野手", 0.27, 0.13, 0.39, 999, 999, 0.262, roster="一軍")
+    players_data["王念好"] = create_batter_data("王念好", "富邦悍將", "3B / 三壘手", 0.27, 0.13, 0.4, 70, 82, 0.26, roster="一軍")
+    players_data["池恩齊"] = create_batter_data("池恩齊", "富邦悍將", "SS / 游擊手", 0.25, 0.1, 0.33, 999, 999, 0.265, roster="一軍")
+    players_data["蔡佳諺"] = create_batter_data("蔡佳諺", "富邦悍將", "OF / 外野手", 0.26, 0.12, 0.37, 999, 999, 0.258, roster="一軍")
+    players_data["林哲瑄"] = create_batter_data("林哲瑄", "富邦悍將", "OF / 外野手", 0.24, 0.09, 0.33, 50, 64, 0.25, roster="一軍")
+    players_data["富藍戈"] = create_pitcher_data("富藍戈", "富邦悍將", "RP / 救援投手", 1.7, 157.5, 18.0, 999, 999, 1.95, roster="一軍")
+    players_data["江少慶"] = create_pitcher_data("江少慶", "富邦悍將", "SP / 先發投手", 2.1, 149.0, 16.2, 65, 78, 3.4, roster="一軍")
+    players_data["羅戈"] = create_pitcher_data("羅戈", "富邦悍將", "SP / 先發投手", 1.8, 150.5, 17.0, 999, 999, 2.2, roster="一軍")
+    players_data["藍力"] = create_pitcher_data("藍力", "富邦悍將", "SP / 先發投手", 1.9, 146.5, 16.5, 70, 84, 2.6, roster="一軍")
+    players_data["陳仕朋"] = create_pitcher_data("陳仕朋", "富邦悍將", "SP / 先發投手", 2.0, 142.5, 15.5, 62, 76, 3.25, roster="一軍")
+    players_data["曾峻岳"] = create_pitcher_data("曾峻岳", "富邦悍將", "SU / 佈局投手", 1.8, 154.0, 17.8, 75, 88, 1.85, roster="一軍")
+    players_data["王尉永"] = create_pitcher_data("王尉永", "富邦悍將", "RP / 中繼投手", 1.8, 147.5, 16.2, 72, 85, 2.4, roster="一軍")
+    players_data["岳少華"] = create_pitcher_data("岳少華", "富邦悍將", "RP / 中繼投手", 1.9, 146.0, 15.8, 999, 999, 2.95, roster="一軍")
+    players_data["歐書誠"] = create_pitcher_data("歐書誠", "富邦悍將", "RP / 中繼投手", 2.0, 141.5, 15.0, 72, 85, 3.4, roster="一軍")
+    players_data["李建勳"] = create_pitcher_data("李建勳", "富邦悍將", "RP / 中繼投手", 2.1, 147.0, 15.5, 999, 999, 3.65, roster="一軍")
+    players_data["賴智垣"] = create_pitcher_data("賴智垣", "富邦悍將", "RP / 中繼投手", 2.0, 145.0, 15.2, 999, 999, 3.3, roster="一軍")
+    players_data["蔣智賢"] = create_batter_data("蔣智賢", "富邦悍將", "DH / 指定打擊", 0.28, 0.14, 0.39, 55, 68, 0.265, roster="二軍")
+    players_data["辛元旭"] = create_batter_data("辛元旭", "富邦悍將", "3B / 三壘手", 0.25, 0.1, 0.35, 999, 999, 0.258, roster="二軍")
+    players_data["葉子霆"] = create_batter_data("葉子霆", "富邦悍將", "IF / 內野手", 0.26, 0.11, 0.31, 999, 999, 0.25, roster="二軍")
+    players_data["周佳樂"] = create_batter_data("周佳樂", "富邦悍將", "OF / 外野手", 0.28, 0.13, 0.32, 999, 999, 0.24, roster="二軍")
+    players_data["豊暐"] = create_batter_data("豊暐", "富邦悍將", "C / 捕手", 0.27, 0.13, 0.34, 999, 999, 0.242, roster="二軍")
+    players_data["蕭憶銘"] = create_batter_data("蕭憶銘", "富邦悍將", "C / 捕手", 0.26, 0.12, 0.32, 999, 999, 0.238, roster="二軍")
+    players_data["林澤彬"] = create_batter_data("林澤彬", "富邦悍將", "IF / 內野手", 0.26, 0.11, 0.33, 999, 999, 0.248, roster="二軍")
+    players_data["高捷"] = create_batter_data("高捷", "富邦悍將", "IF / 內野手", 0.27, 0.12, 0.32, 999, 999, 0.235, roster="二軍")
+    players_data["賴柏均"] = create_batter_data("賴柏均", "富邦悍將", "IF / 內野手", 0.26, 0.11, 0.31, 999, 999, 0.23, roster="二軍")
+    players_data["郭俊麟"] = create_pitcher_data("郭俊麟", "富邦悍將", "SP / 先發投手", 2.1, 144.0, 15.2, 62, 76, 4.1, roster="二軍")
+    players_data["游霆崴"] = create_pitcher_data("游霆崴", "富邦悍將", "SP / 先發投手", 2.2, 141.0, 14.8, 999, 999, 4.35, roster="二軍")
+    players_data["林栚呈"] = create_pitcher_data("林栚呈", "富邦悍將", "RP / 後援投手", 2.1, 146.0, 15.4, 999, 999, 4.0, roster="二軍")
+    players_data["江國豪"] = create_pitcher_data("江國豪", "富邦悍將", "SP / 先發投手", 2.0, 145.5, 15.6, 68, 82, 3.8, roster="二軍")
+    players_data["潘奕誠"] = create_pitcher_data("潘奕誠", "富邦悍將", "RP / 後援投手", 2.2, 144.0, 15.0, 999, 999, 4.4, roster="二軍")
+    players_data["楊強森"] = create_pitcher_data("楊強森", "富邦悍將", "RP / 後援投手", 2.3, 143.0, 14.9, 999, 999, 4.5, roster="二軍")
+    players_data["郭泰呈"] = create_pitcher_data("郭泰呈", "富邦悍將", "RP / 後援投手", 2.1, 145.0, 15.2, 999, 999, 4.1, roster="二軍")
+    # 台鋼雄鷹
+    players_data["張肇元"] = create_batter_data("張肇元", "台鋼雄鷹", "C / 捕手", 0.28, 0.14, 0.38, 60, 74, 0.255, roster="一軍")
+    players_data["吳明鴻"] = create_batter_data("吳明鴻", "台鋼雄鷹", "C / 捕手", 0.25, 0.11, 0.33, 999, 999, 0.248, roster="一軍")
+    players_data["陳致嘉"] = create_batter_data("陳致嘉", "台鋼雄鷹", "C / 捕手", 0.26, 0.12, 0.32, 999, 999, 0.238, roster="一軍")
+    players_data["魔鷹"] = create_batter_data("魔鷹", "台鋼雄鷹", "1B / 一壘手", 0.31, 0.18, 0.52, 75, 87, 0.305, roster="一軍")
+    players_data["曾子祐"] = create_batter_data("曾子祐", "台鋼雄鷹", "SS / 游擊手", 0.24, 0.09, 0.37, 999, 999, 0.298, roster="一軍")
+    players_data["吳念庭"] = create_batter_data("吳念庭", "台鋼雄鷹", "3B / 三壘手", 0.25, 0.1, 0.42, 65, 78, 0.29, roster="一軍")
+    players_data["郭永維"] = create_batter_data("郭永維", "台鋼雄鷹", "2B / 二壘手", 0.24, 0.09, 0.34, 999, 999, 0.278, roster="一軍")
+    players_data["杜家明"] = create_batter_data("杜家明", "台鋼雄鷹", "3B / 三壘手", 0.25, 0.1, 0.36, 999, 999, 0.268, roster="一軍")
+    players_data["王柏融"] = create_batter_data("王柏融", "台鋼雄鷹", "LF / 左外野手", 0.27, 0.13, 0.44, 68, 80, 0.285, roster="一軍")
+    players_data["陳文杰"] = create_batter_data("陳文杰", "台鋼雄鷹", "CF / 中外野手", 0.28, 0.12, 0.4, 72, 84, 0.272, roster="一軍")
+    players_data["葉保弟"] = create_batter_data("葉保弟", "台鋼雄鷹", "RF / 右外野手", 0.26, 0.12, 0.35, 999, 999, 0.26, roster="一軍")
+    players_data["藍寅倫"] = create_batter_data("藍寅倫", "台鋼雄鷹", "DH / 指定打擊", 0.27, 0.13, 0.39, 58, 72, 0.27, roster="一軍")
+    players_data["林家鋐"] = create_batter_data("林家鋐", "台鋼雄鷹", "IF / 內野手", 0.26, 0.11, 0.33, 999, 999, 0.252, roster="一軍")
+    players_data["王博玄"] = create_batter_data("王博玄", "台鋼雄鷹", "1B / 一壘手", 0.25, 0.1, 0.36, 999, 999, 0.275, roster="一軍")
+    players_data["黃劼希"] = create_batter_data("黃劼希", "台鋼雄鷹", "IF / 內野手", 0.26, 0.11, 0.34, 999, 999, 0.26, roster="一軍")
+    players_data["哈瑪星"] = create_pitcher_data("哈瑪星", "台鋼雄鷹", "SP / 先發投手", 1.9, 148.5, 16.8, 999, 999, 2.75, roster="一軍")
+    players_data["後勁"] = create_pitcher_data("後勁", "台鋼雄鷹", "SP / 先發投手", 1.8, 147.0, 16.0, 999, 999, 2.5, roster="一軍")
+    players_data["江承諺"] = create_pitcher_data("江承諺", "台鋼雄鷹", "SP / 先發投手", 1.9, 140.5, 15.5, 70, 84, 3.2, roster="一軍")
+    players_data["施子謙"] = create_pitcher_data("施子謙", "台鋼雄鷹", "SP / 先發投手", 2.0, 143.0, 15.2, 64, 78, 3.6, roster="一軍")
+    players_data["小野寺賢人"] = create_pitcher_data("小野寺賢人", "台鋼雄鷹", "SP / 先發投手", 1.9, 144.5, 15.8, 999, 999, 2.95, roster="一軍")
+    players_data["雷公"] = create_pitcher_data("雷公", "台鋼雄鷹", "CP / 救援投手", 2.0, 153.0, 17.0, 78, 90, 2.8, roster="一軍")
+    players_data["黃群"] = create_pitcher_data("黃群", "台鋼雄鷹", "RP / 中繼投手", 1.8, 145.0, 16.2, 72, 85, 2.65, roster="一軍")
+    players_data["賴鴻誠"] = create_pitcher_data("賴鴻誠", "台鋼雄鷹", "RP / 中繼投手", 1.9, 143.0, 15.6, 999, 999, 3.1, roster="一軍")
+    players_data["伍祐城"] = create_pitcher_data("伍祐城", "台鋼雄鷹", "SP / 先發投手", 2.0, 147.5, 16.0, 999, 999, 3.4, roster="一軍")
+    players_data["巫柏葳"] = create_pitcher_data("巫柏葳", "台鋼雄鷹", "RP / 中繼投手", 2.0, 146.0, 15.4, 999, 999, 3.55, roster="一軍")
+    players_data["陳暐皓"] = create_pitcher_data("陳暐皓", "台鋼雄鷹", "RP / 中繼投手", 2.1, 145.5, 15.2, 999, 999, 3.75, roster="一軍")
+    players_data["紀慶然"] = create_batter_data("紀慶然", "台鋼雄鷹", "IF / 內野手", 0.26, 0.11, 0.34, 999, 999, 0.265, roster="二軍")
+    players_data["孫易伸"] = create_batter_data("孫易伸", "台鋼雄鷹", "OF / 外野手", 0.28, 0.13, 0.35, 65, 78, 0.25, roster="二軍")
+    players_data["胡冠俞"] = create_batter_data("胡冠俞", "台鋼雄鷹", "IF / 內野手", 0.27, 0.12, 0.32, 999, 999, 0.245, roster="二軍")
+    players_data["顏郁軒"] = create_batter_data("顏郁軒", "台鋼雄鷹", "1B / 一壘手", 0.29, 0.14, 0.37, 70, 82, 0.255, roster="二軍")
+    players_data["高聖恩"] = create_batter_data("高聖恩", "台鋼雄鷹", "OF / 外野手", 0.27, 0.13, 0.33, 999, 999, 0.248, roster="二軍")
+    players_data["陳飛霖"] = create_batter_data("陳飛霖", "台鋼雄鷹", "IF / 內野手", 0.26, 0.11, 0.32, 999, 999, 0.252, roster="二軍")
+    players_data["洪瑋漢"] = create_batter_data("洪瑋漢", "台鋼雄鷹", "OF / 外野手", 0.26, 0.11, 0.34, 999, 999, 0.245, roster="二軍")
+    players_data["邱邦"] = create_batter_data("邱邦", "台鋼雄鷹", "C / 捕手", 0.27, 0.12, 0.31, 999, 999, 0.235, roster="二軍")
+    players_data["曾宸佐"] = create_batter_data("曾宸佐", "台鋼雄鷹", "OF / 外野手", 0.28, 0.13, 0.33, 999, 999, 0.24, roster="二軍")
+    players_data["陳宇宏"] = create_pitcher_data("陳宇宏", "台鋼雄鷹", "SP / 先發投手", 2.1, 135.0, 14.5, 62, 76, 4.0, roster="二軍")
+    players_data["許育銘"] = create_pitcher_data("許育銘", "台鋼雄鷹", "RP / 後援投手", 2.2, 142.0, 15.0, 999, 999, 4.2, roster="二軍")
+    players_data["楊達翔"] = create_pitcher_data("楊達翔", "台鋼雄鷹", "RP / 後援投手", 2.4, 150.0, 15.5, 72, 86, 4.5, roster="二軍")
+    players_data["林詩翔"] = create_pitcher_data("林詩翔", "台鋼雄鷹", "RP / 後援投手", 2.1, 144.0, 15.1, 999, 999, 3.95, roster="二軍")
+    players_data["謝葆錡"] = create_pitcher_data("謝葆錡", "台鋼雄鷹", "RP / 後援投手", 2.2, 145.0, 15.3, 999, 999, 4.1, roster="二軍")
+    players_data["蕭柏頤"] = create_pitcher_data("蕭柏頤", "台鋼雄鷹", "RP / 後援投手", 2.2, 143.5, 15.0, 999, 999, 4.3, roster="二軍")
+    players_data["鄧佳安"] = create_pitcher_data("鄧佳安", "台鋼雄鷹", "RP / 後援投手", 2.3, 144.5, 15.2, 999, 999, 4.4, roster="二軍")
 
     return players_data
 
@@ -1047,18 +1401,32 @@ def generate_baseball_season_data():
 all_players_data = generate_baseball_season_data()
 player_keys = list(all_players_data.keys())
 teams_list = ["味全龍", "統一7-ELEVEn獅", "中信兄弟", "樂天桃猿", "富邦悍將", "台鋼雄鷹"]
+roster_options = ["🟢 一軍登錄名單", "⚪ 二軍培訓名單"]
 
 # 初始化 Session State
 if "selected_team" not in st.session_state:
     st.session_state["selected_team"] = "味全龍"
 
-team_players = [p for p in player_keys if all_players_data[p]["team"].iloc[0] == st.session_state["selected_team"]]
+if "selected_roster" not in st.session_state:
+    st.session_state["selected_roster"] = "🟢 一軍登錄名單"
+
+def get_current_team_players(team, roster_display):
+    roster_tag = "一軍" if "一軍" in roster_display else "二軍"
+    players = [
+        p for p, d in all_players_data.items()
+        if d["team"].iloc[0] == team and d["roster"].iloc[0] == roster_tag
+    ]
+    if not players:
+        players = [p for p, d in all_players_data.items() if d["team"].iloc[0] == team]
+    return players
+
+team_players = get_current_team_players(st.session_state["selected_team"], st.session_state["selected_roster"])
 
 if "selected_player" not in st.session_state or st.session_state["selected_player"] not in team_players:
-    st.session_state["selected_player"] = team_players[0] if team_players else "吉力吉撈．鞏冠"
+    st.session_state["selected_player"] = team_players[0] if team_players else player_keys[0]
 
 # =============================================================================
-# 3. 側邊欄控制中心 (球隊篩選、一軍名單連動、閾值滑桿)
+# 3. 側邊欄控制中心 (球隊篩選、一/二軍名單連動、球員選取、閾值滑桿)
 # =============================================================================
 st.sidebar.markdown("## ⚙️ 戰情室控制中心")
 
@@ -1073,20 +1441,29 @@ sidebar_team = st.sidebar.selectbox(
 
 if sidebar_team != st.session_state["selected_team"]:
     st.session_state["selected_team"] = sidebar_team
-    new_team_players = [p for p in player_keys if all_players_data[p]["team"].iloc[0] == sidebar_team]
-    st.session_state["selected_player"] = new_team_players[0]
+    new_team_players = get_current_team_players(sidebar_team, st.session_state["selected_roster"])
+    if new_team_players:
+        st.session_state["selected_player"] = new_team_players[0]
     st.rerun()
 
 # 顯示登錄名單層級
-st.sidebar.selectbox(
+sidebar_roster = st.sidebar.selectbox(
     "名單層級：",
-    options=["🟢 一軍登錄名單 (Active 28人)", "⚪ 二軍培訓名單 (Farm)"],
-    index=0,
-    help="即時篩選該球團目前登錄於一軍出賽名單之球員。"
+    options=roster_options,
+    index=0 if "一軍" in st.session_state["selected_roster"] else 1,
+    key="sidebar_roster_select",
+    help="即時篩選該球團目前登錄於一軍出賽名單或二軍培訓名單之球員。"
 )
 
-# 該球隊的一軍球員名單
-team_players = [p for p in player_keys if all_players_data[p]["team"].iloc[0] == st.session_state["selected_team"]]
+if sidebar_roster != st.session_state["selected_roster"]:
+    st.session_state["selected_roster"] = sidebar_roster
+    new_team_players = get_current_team_players(st.session_state["selected_team"], sidebar_roster)
+    if new_team_players:
+        st.session_state["selected_player"] = new_team_players[0]
+    st.rerun()
+
+# 該球隊的當前名單球員
+team_players = get_current_team_players(st.session_state["selected_team"], st.session_state["selected_roster"])
 current_player_idx = team_players.index(st.session_state["selected_player"]) if st.session_state["selected_player"] in team_players else 0
 
 sidebar_selected_player = st.sidebar.selectbox(
@@ -1094,7 +1471,7 @@ sidebar_selected_player = st.sidebar.selectbox(
     options=team_players,
     index=current_player_idx,
     key="sidebar_player_select",
-    help="選擇所屬球隊之一軍球員以檢視時序診斷與運科處方。"
+    help="選擇所屬球隊之球員以檢視時序診斷與運科處方。"
 )
 
 if sidebar_selected_player != st.session_state["selected_player"]:
@@ -1131,7 +1508,7 @@ st.markdown(f"""
             <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
                 <span class="badge badge-primary">⚾ {st.session_state['selected_team']}</span>
                 <span class="badge badge-tonal">即時監控：第 115 場</span>
-                <span class="badge badge-green">一軍出賽名單</span>
+                <span class="badge {'badge-green' if '一軍' in st.session_state['selected_roster'] else 'badge-tonal'}">{st.session_state['selected_roster']}</span>
             </div>
         </div>
     </div>
@@ -1155,7 +1532,7 @@ with kpi_c1:
         label="隊伍綜合健康指數",
         value=f"{avg_thi:.1f}",
         unit="分",
-        subtext=f"{st.session_state['selected_team']} 一軍整體體能狀態",
+        subtext=f"{st.session_state['selected_team']} {st.session_state['selected_roster']}整體體能狀態",
         color="#0A2C51"
     ), unsafe_allow_html=True)
 
@@ -1189,11 +1566,25 @@ with kpi_c4:
 st.write("")
 
 # =============================================================================
-# 5. 全隊一軍主力監控燈號矩陣 (點選球員卡即可切換分析，移除多餘按鈕與字眼)
+# 5. 全隊選手即時監控燈號矩陣 (點選球員卡即可切換分析，卡片下方無任何多餘按鈕)
 # =============================================================================
-c_title, c_picker = st.columns([3, 1.4])
+c_title, c_roster, c_picker = st.columns([3, 1.4, 1.4])
 with c_title:
-    st.markdown(f"### 📋 {st.session_state['selected_team']} 一軍即時監控陣容")
+    st.markdown(f"### 📋 {st.session_state['selected_team']} 陣容")
+with c_roster:
+    main_roster = st.selectbox(
+        "快速切換名單：",
+        options=roster_options,
+        index=0 if "一軍" in st.session_state["selected_roster"] else 1,
+        key="main_roster_picker",
+        label_visibility="collapsed"
+    )
+    if main_roster != st.session_state["selected_roster"]:
+        st.session_state["selected_roster"] = main_roster
+        new_players = get_current_team_players(st.session_state["selected_team"], main_roster)
+        if new_players:
+            st.session_state["selected_player"] = new_players[0]
+        st.rerun()
 with c_picker:
     picked_team = st.selectbox(
         "快速切換球隊：",
@@ -1204,40 +1595,42 @@ with c_picker:
     )
     if picked_team != st.session_state["selected_team"]:
         st.session_state["selected_team"] = picked_team
-        new_players = [p for p in player_keys if all_players_data[p]["team"].iloc[0] == picked_team]
-        st.session_state["selected_player"] = new_players[0]
+        new_players = get_current_team_players(picked_team, st.session_state["selected_roster"])
+        if new_players:
+            st.session_state["selected_player"] = new_players[0]
         st.rerun()
 
-matrix_cols = st.columns(len(team_players))
-
-for idx, p_name in enumerate(team_players):
-    p_df = all_players_data[p_name]
-    curr_mfi = p_df["mfi"].iloc[-1]
-    pos = p_df["pos"].iloc[0]
-    
-    # 依據動態閾值決定燈號
-    if curr_mfi >= threshold_red:
-        badge_html = render_theme_badge(f"🔴 高風險 ({curr_mfi:.1f})", "red")
-    elif curr_mfi >= threshold_yellow:
-        badge_html = render_theme_badge(f"🟡 觀察期 ({curr_mfi:.1f})", "yellow")
-    else:
-        badge_html = render_theme_badge(f"🟢 正常 ({curr_mfi:.1f})", "green")
+cols_per_row = 6
+for row_start in range(0, len(team_players), cols_per_row):
+    chunk = team_players[row_start : row_start + cols_per_row]
+    grid_cols = st.columns(cols_per_row)
+    for idx, p_name in enumerate(chunk):
+        p_df = all_players_data[p_name]
+        curr_mfi = p_df["mfi"].iloc[-1]
+        pos = p_df["pos"].iloc[0]
         
-    is_active = (p_name == selected_player)
-    active_cls = "player-card-active" if is_active else ""
-    
-    with matrix_cols[idx]:
-        st.markdown(f"""
-        <div class="player-card {active_cls}">
-            <div class="player-name">{p_name}</div>
-            <div class="player-pos">{pos}</div>
-            <div style="margin-top: 6px;">{badge_html}</div>
-        </div>
-        """, unsafe_allow_html=True)
-        # 覆蓋整張卡片的透明按鈕，點選卡片直接切換球員
-        if st.button(p_name, key=f"btn_pcard_{p_name}", help=f"點選查看 {p_name} 之微疲勞分析"):
-            st.session_state["selected_player"] = p_name
-            st.rerun()
+        # 依據動態閾值決定燈號
+        if curr_mfi >= threshold_red:
+            badge_html = render_theme_badge(f"🔴 高風險 ({curr_mfi:.1f})", "red")
+        elif curr_mfi >= threshold_yellow:
+            badge_html = render_theme_badge(f"🟡 觀察期 ({curr_mfi:.1f})", "yellow")
+        else:
+            badge_html = render_theme_badge(f"🟢 正常 ({curr_mfi:.1f})", "green")
+            
+        is_active = (p_name == selected_player)
+        active_cls = "player-card-active" if is_active else ""
+        
+        with grid_cols[idx]:
+            card_html = f"""<div class="player-card {active_cls}">
+<div class="player-name">{p_name}</div>
+<div class="player-pos">{pos}</div>
+<div style="margin-top: 6px;">{badge_html}</div>
+</div>"""
+            st.markdown(card_html, unsafe_allow_html=True)
+            # 覆蓋整張卡片的透明按鈕，點選卡片直接切換球員
+            if st.button(p_name, key=f"btn_pcard_{p_name}", help=f"點選查看 {p_name} 之微疲勞分析"):
+                st.session_state["selected_player"] = p_name
+                st.rerun()
 
 st.write("")
 
@@ -1655,51 +2048,44 @@ with tab1:
             feat2 = f"{row['fastball_velo_kph']:.1f} km/h"
             feat3 = f"{row['ivb_inch']:.1f} in"
             
-        rows_html.append(f"""
-        <tr>
-            <td style="font-weight: 700; color: #0A2C51;">第 {g_num} 場</td>
-            <td>{g_date}</td>
-            <td style="font-weight: 700;">{perf}</td>
-            <td style="font-weight: 800; color: {'#E8383D' if mfi_val >= threshold_red else '#0A2C51'};">{mfi_val:.1f}</td>
-            <td>{feat1}</td>
-            <td>{feat2}</td>
-            <td>{feat3}</td>
-            <td>{tag}</td>
-        </tr>
-        """)
+        rows_html.append(f"""<tr>
+<td style="font-weight: 700; color: #0A2C51;">第 {g_num} 場</td>
+<td>{g_date}</td>
+<td style="font-weight: 700;">{perf}</td>
+<td style="font-weight: 800; color: {'#E8383D' if mfi_val >= threshold_red else '#0A2C51'};">{mfi_val:.1f}</td>
+<td>{feat1}</td>
+<td>{feat2}</td>
+<td>{feat3}</td>
+<td>{tag}</td>
+</tr>""")
         
-    table_headers = """
-    <tr>
-        <th>場次</th>
-        <th>日期</th>
-        <th>累積打擊率 (AVG)</th>
-        <th>微疲勞指數 (MFI)</th>
-        <th>壞球追打率 O-Swing%</th>
-        <th>帶內揮空率 Z-Whiff%</th>
-        <th>強擊球率 HardHit%</th>
-        <th>狀態燈號</th>
-    </tr>
-    """ if is_batter else """
-    <tr>
-        <th>場次</th>
-        <th>日期</th>
-        <th>累積防禦率 (ERA)</th>
-        <th>微疲勞指數 (MFI)</th>
-        <th>出手點 3D 離散度</th>
-        <th>四縫線均速</th>
-        <th>垂直誘發位移</th>
-        <th>狀態燈號</th>
-    </tr>
-    """
+    table_headers = """<tr>
+<th>場次</th>
+<th>日期</th>
+<th>累積打擊率 (AVG)</th>
+<th>微疲勞指數 (MFI)</th>
+<th>壞球追打率 O-Swing%</th>
+<th>帶內揮空率 Z-Whiff%</th>
+<th>強擊球率 HardHit%</th>
+<th>狀態燈號</th>
+</tr>""" if is_batter else """<tr>
+<th>場次</th>
+<th>日期</th>
+<th>累積防禦率 (ERA)</th>
+<th>微疲勞指數 (MFI)</th>
+<th>出手點 3D 離散度</th>
+<th>四縫線均速</th>
+<th>垂直誘發位移</th>
+<th>狀態燈號</th>
+</tr>"""
     
-    st.markdown(f"""
-    <div style="overflow-x: auto; width: 100%; border-radius: 14px; box-shadow: 0 1px 4px rgba(10, 44, 81, 0.06); margin-top: 10px;">
-        <table class="diag-table">
-            <thead>{table_headers}</thead>
-            <tbody>{''.join(rows_html)}</tbody>
-        </table>
-    </div>
-    """, unsafe_allow_html=True)
+    table_content = f"""<div style="overflow-x: auto; width: 100%; border-radius: 14px; box-shadow: 0 1px 4px rgba(10, 44, 81, 0.06); margin-top: 10px;">
+<table class="diag-table">
+<thead>{table_headers}</thead>
+<tbody>{''.join(rows_html)}</tbody>
+</table>
+</div>"""
+    st.markdown(table_content, unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
 # TAB 2: 運科因果解構與機制分析
@@ -1946,93 +2332,93 @@ with tab4:
 
     with act_col1:
         if curr_player_mfi >= threshold_red:
-            variant = "danger"
-            t_text = "🚨 【一級警戒】總教練出賽調度處方"
-            b_text = """
+            variant1 = "danger"
+            t_text1 = "🚨 【一級警戒】總教練出賽調度處方"
+            b_text1 = """
             • <b>強制輪休</b>：立即自先發名單移出，未來 3 場安排完全輪休或僅限 9 局代打。<br>
             • <b>守備負擔減免</b>：若維持出賽，必須轉任指定打擊 (DH)，嚴禁參與高耗能外野守備。<br>
             • <b>跑壘戰術解除</b>：取消盜壘與打帶跑戰術執行授權，保護下肢肌腱。
             """
         elif curr_player_mfi >= threshold_yellow:
-            variant = "warning"
-            t_text = "🟡 【二級觀察】守備局數調控處方"
-            b_text = """
+            variant1 = "warning"
+            t_text1 = "🟡 【二級觀察】守備局數調控處方"
+            b_text1 = """
             • <b>指定打擊輪替</b>：本週 5 場賽事中，安排 2 場擔任指定打擊 (DH)。<br>
             • <b>提早退場機制</b>：若比分領先超過 4 分，於第 7 局安排守備組替換退場。<br>
             • <b>棒次後移</b>：暫時由第 1~3 棒主力打線移至第 6 棒，降低得點圈心理抗壓負荷。
             """
         else:
-            variant = "info"
-            t_text = "🟢 【常態運作】全速出賽綠燈授權"
-            b_text = """
+            variant1 = "info"
+            t_text1 = "🟢 【常態運作】全速出賽綠燈授權"
+            b_text1 = """
             • <b>完全戰力釋放</b>：中樞神經系統與快縮肌反應維持巔峰，無疲勞掩飾風險。<br>
             • <b>正常先發</b>：可完全維持常規守備與第 1~3 棒主力進攻戰術授權。<br>
             • <b>持續追蹤</b>：每週一例行性檢測 MFI 趨勢。
             """
-        st.markdown(render_theme_action_card(t_text, b_text, variant), unsafe_allow_html=True)
+        st.markdown(render_theme_action_card(t_text1, b_text1, variant1), unsafe_allow_html=True)
 
     with act_col2:
         if curr_player_mfi >= threshold_red:
-            variant = "danger"
-            t_text = "🏋️ 【阻斷課表】打擊教練訓練調整處方"
-            b_text = """
+            variant2 = "danger"
+            t_text2 = "🏋️ 【阻斷課表】打擊教練訓練調整處方"
+            b_text2 = """
             • <b>打擊練習降載</b>：全面暫停賽前 5 組 Free Batting，改為 2 組短程 Tee 擊球。<br>
             • <b>特打訓練取消</b>：全面禁止賽前或賽後加練特打。<br>
             • <b>好球帶感知校準</b>：利用 VR 虛擬實境追蹤系統，進行 15 分鐘純視覺好球辨識訓練。
             """
         elif curr_player_mfi >= threshold_yellow:
-            variant = "warning"
-            t_text = "🏋️ 【量級管控】肌力體能訓練調整處方"
-            b_text = """
+            variant2 = "warning"
+            t_text2 = "🏋️ 【量級管控】肌力體能訓練調整處方"
+            b_text2 = """
             • <b>重訓強度降低 30%</b>：主運動組數由 4 組縮減為 2 組，以維持爆發力為主。<br>
             • <b>增強式訓練暫停</b>：暫停跳箱與深度跳躍等高離心收縮項目。<br>
             • <b>核心抗旋轉強化</b>：專注於低衝擊度的核心與旋轉肌群控制。
             """
         else:
-            variant = "info"
-            t_text = "🏋️ 【例行維護】週期化力量強化課表"
-            b_text = """
+            variant2 = "info"
+            t_text2 = "🏋️ 【例行維護】週期化力量強化課表"
+            b_text2 = """
             • <b>維持標準訓練量</b>：生理神經反應良好，可依既定課表進行中高強度重訓。<br>
             • <b>常態化課表</b>：按選手個人週期化重訓課表執行即可。<br>
             • <b>神經啟動</b>：賽前常規 15 分鐘速度敏捷繩梯與快縮肌啟動。
             """
-        st.markdown(render_theme_action_card(t_text, b_text, variant), unsafe_allow_html=True)
+        st.markdown(render_theme_action_card(t_text2, b_text2, variant2), unsafe_allow_html=True)
 
     with act_col3:
         if curr_player_mfi >= threshold_red:
-            variant = "danger"
-            t_text = "🩺 【緊急修復】防護員物理治療介入處方"
-            b_text = """
+            variant3 = "danger"
+            t_text3 = "🩺 【緊急修復】防護員物理治療介入處方"
+            b_text3 = """
             • <b>冷熱交替浸泡</b>：賽後即刻執行 12 分鐘對比浴 (Contrast Bath Therapy)。<br>
             • <b>神經肌肉放鬆</b>：針對腰薦椎豎脊肌與旋轉肌群進行 30 分鐘深層筋膜刀放鬆。<br>
             • <b>血流阻斷恢復</b>：賽後進行 BFR 低阻力主動伸展，加速代謝副產物清除。
             """
         elif curr_player_mfi >= threshold_yellow:
-            variant = "warning"
-            t_text = "🩺 【預防保養】生物力學檢測與防護處方"
-            b_text = """
+            variant3 = "warning"
+            t_text3 = "🩺 【預防保養】生物力學檢測與防護處方"
+            b_text3 = """
             • <b>關節活動度 (ROM) 篩檢</b>：重點檢測胸椎旋轉角度與髖關節內外旋活動度。<br>
             • <b>淋巴引流氣壓靴</b>：賽前與賽後各使用 NormaTec 氣壓靴 20 分鐘。<br>
             • <b>睡眠監測加強</b>：睡眠時間確保達 8.5 小時，必要時補充電解質與鎂劑。
             """
         else:
-            variant = "info"
-            t_text = "🩺 【健康監控】例行防護與疲勞恢復"
-            b_text = """
+            variant3 = "info"
+            t_text3 = "🩺 【健康監控】例行防護與疲勞恢復"
+            b_text3 = """
             • <b>常規保養流程</b>：賽後維持常態性伸展與冰敷保養。<br>
             • <b>例行保養</b>：常態性賽後肩關節/手肘冰熱敷交替與軟組織滾筒放鬆。<br>
             • <b>睡眠品質良好</b>：心率變異度與肌肉張力指數維持於標準綠燈區間。
             """
-        st.markdown(render_theme_action_card(t_text, b_text, variant), unsafe_allow_html=True)
+        st.markdown(render_theme_action_card(t_text3, b_text3, variant3), unsafe_allow_html=True)
 
     st.write("")
-    clean_b_text = b_text.replace("<b>", "").replace("</b>", "").replace("<br>", "\n   ")
+    clean_b_text = b_text1.replace("<b>", "").replace("</b>", "").replace("<br>", "\n   ")
     clean_b_text2 = b_text2.replace("<b>", "").replace("</b>", "").replace("<br>", "\n   ")
     clean_b_text3 = b_text3.replace("<b>", "").replace("</b>", "").replace("<br>", "\n   ")
     
     export_content = f"""=============================================================================
 【MFEWS 賽季微疲勞先行預警系統】專屬調度與防護處方箋
-球隊：{st.session_state['selected_team']} | 名單層級：一軍登錄名單
+球隊：{st.session_state['selected_team']} | 名單層級：{st.session_state['selected_roster']}
 球員姓名：{selected_player} ({selected_df['pos'].iloc[0]})
 產生日程：{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 微疲勞指數 (MFI)：{curr_player_mfi:.1f} | 狀態：{selected_df['status_now'].iloc[-1]}
@@ -2072,6 +2458,19 @@ st.markdown("""
     <!-- 載入 stlite mountable 執行腳本 -->
     <script src="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.58.0/build/stlite.js"></script>
     <script>
+            // 點選卡片直接切換球員 (雙重保障：轉發點擊至透明按鈕)
+      document.addEventListener('click', function(e) {
+        var card = e.target.closest('.player-card');
+        if (card) {
+          var col = card.closest('[data-testid*="olumn"]');
+          if (col) {
+            var btn = col.querySelector('.stButton button');
+            if (btn && e.target !== btn) {
+              btn.click();
+            }
+          }
+        }
+      });
       const rawCode = document.getElementById('app-code').textContent;
       stlite.mount(
         {
