@@ -7,6 +7,30 @@
 =============================================================================
 """
 
+import sys
+import types
+
+# =============================================================================
+# Pyodide / stlite / WebAssembly 環境相容性補丁 (Polyfill pyarrow stub)
+# 解決 narwhals 在檢測 arrow 物件時引用 pa.ChunkedArray / pa.Table 拋出 AttributeError 的問題
+# =============================================================================
+try:
+    import pyarrow as _pa
+    for _attr in ["ChunkedArray", "Table", "RecordBatch", "Array", "DataType", "Field", "Schema"]:
+        if not hasattr(_pa, _attr):
+            setattr(_pa, _attr, type(_attr, (), {}))
+except Exception:
+    _pa = types.ModuleType("pyarrow")
+    for _attr in ["ChunkedArray", "Table", "RecordBatch", "Array", "DataType", "Field", "Schema"]:
+        setattr(_pa, _attr, type(_attr, (), {}))
+    sys.modules["pyarrow"] = _pa
+
+if "pyarrow" in sys.modules and sys.modules["pyarrow"] is not None:
+    _pa_mod = sys.modules["pyarrow"]
+    for _attr in ["ChunkedArray", "Table", "RecordBatch", "Array", "DataType", "Field", "Schema"]:
+        if not hasattr(_pa_mod, _attr):
+            setattr(_pa_mod, _attr, type(_attr, (), {}))
+
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -1115,8 +1139,8 @@ with tab1:
         # 上圖：傳統累積打擊率 (Material You Primary Purple #6750A4)
         fig.add_trace(
             go.Scatter(
-                x=filtered_df["game"],
-                y=filtered_df["cum_avg"],
+                x=filtered_df["game"].tolist(),
+                y=filtered_df["cum_avg"].tolist(),
                 name="累積打擊率 (AVG)",
                 line=dict(color="#6750A4", width=3.2),
                 hovertemplate="第 %{x} 場<br>累積打擊率: %{y:.3f}<extra></extra>"
@@ -1135,8 +1159,8 @@ with tab1:
         # 下圖：微疲勞綜合風險指數 (MFI)
         fig.add_trace(
             go.Scatter(
-                x=filtered_df["game"],
-                y=plot_mfi,
+                x=filtered_df["game"].tolist(),
+                y=plot_mfi.tolist() if hasattr(plot_mfi, "tolist") else list(plot_mfi),
                 name="微疲勞綜合風險指數 (MFI)",
                 line=dict(color="#BA1A1A", width=3.5),
                 hovertemplate="第 %{x} 場<br>MFI 指數: %{y:.1f}<extra></extra>"
@@ -1147,8 +1171,8 @@ with tab1:
         # 滾動 7 天 O-Swing% (壞球追打率)
         fig.add_trace(
             go.Scatter(
-                x=filtered_df["game"],
-                y=filtered_df["roll_oswing"],
+                x=filtered_df["game"].tolist(),
+                y=filtered_df["roll_oswing"].tolist(),
                 name="壞球追打率 O-Swing% (7天滾動)",
                 line=dict(color="#8C5000", width=1.8, dash="dash"),
                 hovertemplate="第 %{x} 場<br>O-Swing%: %{y:.1f}%<extra></extra>"
@@ -1159,8 +1183,8 @@ with tab1:
         # 滾動 7 天 Z-Whiff% (帶內揮空率)
         fig.add_trace(
             go.Scatter(
-                x=filtered_df["game"],
-                y=filtered_df["roll_zwhiff"],
+                x=filtered_df["game"].tolist(),
+                y=filtered_df["roll_zwhiff"].tolist(),
                 name="帶內揮空率 Z-Whiff% (7天滾動)",
                 line=dict(color="#7D5260", width=1.8, dash="dot"),
                 hovertemplate="第 %{x} 場<br>Z-Whiff%: %{y:.1f}%<extra></extra>"
@@ -1171,8 +1195,8 @@ with tab1:
         # 滾動 7 天 HardHit% (強擊球率)
         fig.add_trace(
             go.Scatter(
-                x=filtered_df["game"],
-                y=filtered_df["roll_hardhit"],
+                x=filtered_df["game"].tolist(),
+                y=filtered_df["roll_hardhit"].tolist(),
                 name="強擊球率 HardHit% (7天滾動)",
                 line=dict(color="#1B6E3E", width=1.8, dash="dashdot"),
                 hovertemplate="第 %{x} 場<br>HardHit%: %{y:.1f}%<extra></extra>"
@@ -1256,8 +1280,8 @@ with tab1:
         # 1. 上圖：ERA
         fig.add_trace(
             go.Scatter(
-                x=filtered_df["game"],
-                y=filtered_df["cum_era"],
+                x=filtered_df["game"].tolist(),
+                y=filtered_df["cum_era"].tolist(),
                 name="累積防禦率 (ERA)",
                 line=dict(color="#7D5260", width=3.2),
                 hovertemplate="第 %{x} 場<br>累積 ERA: %{y:.2f}<extra></extra>"
@@ -1268,8 +1292,8 @@ with tab1:
         # 2. 下圖：MFI
         fig.add_trace(
             go.Scatter(
-                x=filtered_df["game"],
-                y=plot_mfi,
+                x=filtered_df["game"].tolist(),
+                y=plot_mfi.tolist() if hasattr(plot_mfi, "tolist") else list(plot_mfi),
                 name="投手微疲勞指數 (MFI)",
                 line=dict(color="#BA1A1A", width=3.5),
                 hovertemplate="第 %{x} 場<br>投手 MFI: %{y:.1f}<extra></extra>"
@@ -1280,8 +1304,8 @@ with tab1:
         # 出手點離散度
         fig.add_trace(
             go.Scatter(
-                x=filtered_df["game"],
-                y=filtered_df["rel_disp_cm"],
+                x=filtered_df["game"].tolist(),
+                y=filtered_df["rel_disp_cm"].tolist(),
                 name="出手點 3D 離散度 (cm)",
                 line=dict(color="#6750A4", width=2, dash="dash"),
                 hovertemplate="第 %{x} 場<br>出手點離散: %{y:.2f} cm<extra></extra>"
@@ -1292,12 +1316,12 @@ with tab1:
         # 均速
         fig.add_trace(
             go.Scatter(
-                x=filtered_df["game"],
-                y=filtered_df["fastball_velo_kph"] - 140,
+                x=filtered_df["game"].tolist(),
+                y=(filtered_df["fastball_velo_kph"] - 140).tolist(),
                 name="四縫線均速 (km/h - 140 基準)",
                 line=dict(color="#625B71", width=2, dash="dot"),
                 hovertemplate="第 %{x} 場<br>均速: %{text} km/h<extra></extra>",
-                text=filtered_df["fastball_velo_kph"]
+                text=filtered_df["fastball_velo_kph"].tolist()
             ),
             row=2, col=1
         )
@@ -1504,11 +1528,11 @@ with tab3:
                     
             fig_sim = go.Figure()
             fig_sim.add_trace(go.Scatter(
-                x=selected_df["game"], y=selected_df["cum_avg"],
+                x=selected_df["game"].tolist(), y=selected_df["cum_avg"].tolist(),
                 name="未介入（放任累積疲勞）", line=dict(color="#BA1A1A", width=2.5, dash="dash")
             ))
             fig_sim.add_trace(go.Scatter(
-                x=selected_df["game"], y=sim_avg,
+                x=selected_df["game"].tolist(), y=sim_avg.tolist() if hasattr(sim_avg, "tolist") else list(sim_avg),
                 name="MFEWS 及時介入處方（保全打擊產能）", line=dict(color="#1B6E3E", width=3.2)
             ))
             fig_sim.update_layout(
@@ -1556,11 +1580,11 @@ with tab3:
                     
             fig_sim = go.Figure()
             fig_sim.add_trace(go.Scatter(
-                x=selected_df["game"], y=selected_df["cum_era"],
+                x=selected_df["game"].tolist(), y=selected_df["cum_era"].tolist(),
                 name="未介入（放任累積疲勞）", line=dict(color="#BA1A1A", width=2.5, dash="dash")
             ))
             fig_sim.add_trace(go.Scatter(
-                x=selected_df["game"], y=sim_era,
+                x=selected_df["game"].tolist(), y=sim_era.tolist() if hasattr(sim_era, "tolist") else list(sim_era),
                 name="MFEWS 及時跳過輪值處方（保全防禦率）", line=dict(color="#1B6E3E", width=3.2)
             ))
             fig_sim.update_layout(
