@@ -22,8 +22,8 @@
 * **數據層級**：包含 `game`（賽事資訊）、`pitcherBox`（投手計分卡）、`batterBox`（打者計分卡）、`PA`（逐打席進程）以及 `event`（逐球詳細資訊）。
 * **核心欄位驅動**：
   * **投手運動學**：逐球時速 `velocity`、球種 `pitchType`（FF 四縫線、SL、CH 等）、進壘坐標 `coordX` / `coordY`、用球數 `NP`、局數出局數 `IPOuts`、責失 `ER`。
-  * **打者神經視覺**：好球判定 `isStrike`、壞球判定 `isBall`、揮棒結果代碼 `pitchCode`（SW 揮空、S 見振、B 壞球、H 擊球進場）、擊球強度 `hardness`（HARD 強勁擊球）。
-* **自動化 ETL 流程**：專案內建 [`etl_rebas_data.py`](file:///home/ericlin/codex/baseball-mfews/etl_rebas_data.py)，可一鍵自 REBAS 原始逐球 JSON 檔案中萃取 252 位選手全賽季逐場運動學特徵，轉化為 MFI 微疲勞指標。
+  * **打者神經視覺**：好球判定 `isStrike`、壞球判定 `isBall`、揮棒結果代碼 `pitchCode`（SW 揮空、S 見振、B 壞球、H 擊球進場）、擊球強度 `hardness`（H 強勁擊球）。
+* **自動化 ETL 流程**：專案內建 [`etl_rebas_data.py`](file:///home/ericlin/codex/baseball-mfews/etl_rebas_data.py)，可一鍵自 REBAS 原始逐球 JSON 檔案中萃取 213 位選手全賽季逐場運動學特徵，轉化為 MFI 微疲勞指標。
 
 ---
 
