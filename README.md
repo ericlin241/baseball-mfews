@@ -3,14 +3,27 @@
 > **2026 野革盃台灣棒球數據黑客松 · 參賽專案**  
 > *「等成績跳水才換人，球員早已過勞兩週；以神經視覺與微觀動力學先行特徵，奪回 10~14 天黃金調度主動權。」*
 
-[![Streamlit](https://img.shields.io/badge/Streamlit-1.35+-FF4B4B?style=for-the-badge&logo=Streamlit&logoColor=white)](https://streamlit.io/)
-[![Plotly](https://img.shields.io/badge/Plotly-5.18+-3F4F75?style=for-the-badge&logo=Plotly&logoColor=white)](https://plotly.com/)
-[![WebAssembly](https://img.shields.io/badge/WebAssembly-Stlite_Wasm-654FF0?style=for-the-badge&logo=webassembly&logoColor=white)](https://github.com/whitphx/stlite)
+[![rebas.tw Open Data](https://img.shields.io/badge/Data_Source-rebas.tw_Open_Data-0A2C51?style=for-the-badge&logo=github)](https://github.com/rebas-tw/rebas.tw-open-data)
+[![Plotly](https://img.shields.io/badge/Plotly.js-2.32+-3F4F75?style=for-the-badge&logo=Plotly&logoColor=white)](https://plotly.com/)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 
-🌐 **GitHub Pages 線上即時展示（極速秒開純前端架構，支援手機平板電腦免安裝）**：  
+🌐 **GitHub Pages 線上即時展示（0.3 秒極速秒開純前端架構，支援手機平板電腦免安裝）**：  
 👉 [https://ericlin241.github.io/baseball-mfews/](https://ericlin241.github.io/baseball-mfews/)
+
+---
+
+## 📦 數據來源：rebas.tw 野球革命 Open Data 共享計劃
+
+本系統的真實球員實戰時序數據庫，全面對接並整合 **[rebas.tw 野球革命 Open Data 共享計劃](https://github.com/rebas-tw/rebas.tw-open-data)**（依據 ODC-By License 規範使用與標註來源）：
+
+* **數據儲存庫**：[`rebas-tw/rebas.tw-open-data`](https://github.com/rebas-tw/rebas.tw-open-data)
+* **賽季範圍**：中華職棒 **2024 年完整例行賽事（360 場比賽）**。
+* **數據層級**：包含 `game`（賽事資訊）、`pitcherBox`（投手計分卡）、`batterBox`（打者計分卡）、`PA`（逐打席進程）以及 `event`（逐球詳細資訊）。
+* **核心欄位驅動**：
+  * **投手運動學**：逐球時速 `velocity`、球種 `pitchType`（FF 四縫線、SL、CH 等）、進壘坐標 `coordX` / `coordY`、用球數 `NP`、局數出局數 `IPOuts`、責失 `ER`。
+  * **打者神經視覺**：好球判定 `isStrike`、壞球判定 `isBall`、揮棒結果代碼 `pitchCode`（SW 揮空、S 見振、B 壞球、H 擊球進場）、擊球強度 `hardness`（HARD 強勁擊球）。
+* **自動化 ETL 流程**：專案內建 [`etl_rebas_data.py`](file:///home/ericlin/codex/baseball-mfews/etl_rebas_data.py)，可一鍵自 REBAS 原始逐球 JSON 檔案中萃取 252 位選手全賽季逐場運動學特徵，轉化為 MFI 微疲勞指標。
 
 ---
 
@@ -73,101 +86,46 @@ MFEWS 所選用的先行特徵皆具備嚴謹的運動生理學與神經科學�
 ### 1. 打者特徵 (Batter Neuromuscular Features)
 | 指標名稱 | 傳統角色 | 運科疲勞意義 (Fatigue Biomarker) | 正常基準 | 疲勞警示閾值 |
 | :--- | :--- | :--- | :--- | :--- |
-| **O-Swing%**<br>(壞球追打率) | 選球紀律 | **中樞神經系統（CNS）視知覺延遲**<br>當大腦視覺皮層疲勞時，對球路軌跡的反應時間延遲 15~25 毫秒，導致打者無法在好壞球臨界點踩煞車，滾動 7 天追打率急速飆高。 | 20% ~ 25% | **> 35%** (顯著惡化) |
-| **Z-Whiff%**<br>(好球帶內揮空率) | 擊球技巧 | **快縮肌運動單位徵召鈍化（Motor Unit Fatigue）**<br>面對好球帶內來球，揮棒啟動時間與揮棒軌跡（Bat Path）產生微米級偏差，即使是失投紅中球也頻頻揮空或擊出擦棒球。 | 7% ~ 10% | **> 18%** (爆發力損耗) |
-| **HardHit%**<br>(強擊球率, 95mph+) | 擊球力量 | **動力鏈傳導效率洩漏（Kinetic Chain Breakdown）**<br>下肢至軀幹轉體的動能傳遞衰減，擊球初速 >= 95 mph 的比例顯著下跌，軟弱滾地球與沖天炮比例倍增。 | 40% ~ 48% | **< 28%** (擊球噴力衰退) |
+| **O-Swing%**<br>(壞球追打率) | 選球紀律 | **中樞神經系統（CNS）視知覺延遲**<br>當大腦視覺皮層疲勞時，對球路軌跡的反應時間延遲 15~25 毫秒，導致打者無法在好壞球臨界點踩煞車，滾動追打率急速飆高。 | 20% ~ 25% | **> 35%** (顯著惡化) |
+| **Z-Whiff%**<br>(好球帶內揮空率) | 擊球技巧 | **快縮肌運動單位徵召鈍化（Motor Unit Fatigue）**<br>面對好球帶內來球，揮棒啟動時間與揮棒軌跡產生偏差，即使面對紅中好球也頻繁揮空。 | 7% ~ 10% | **> 18%** (爆發力損耗) |
+| **HardHit%**<br>(強擊球率) | 擊球力量 | **動力鏈傳導效率洩漏（Kinetic Chain Breakdown）**<br>下肢至軀幹轉體的動能傳遞衰減，強勁擊球比例顯著下跌，軟弱滾地球與沖天炮倍增。 | 40% ~ 48% | **< 28%** (擊球噴力衰退) |
 
 ### 2. 投手特徵 (Pitcher Kinematic Features)
 | 指標名稱 | 傳統角色 | 運科疲勞意義 (Fatigue Biomarker) | 正常基準 | 疲勞警示閾值 |
 | :--- | :--- | :--- | :--- | :--- |
-| **Release Point 3D Dispersion**<br>(出手點 3D 空間離散度 $\sigma_{rel}$) | 控球穩定度 | **肩袖肌群與核心穩定失調**<br>當肩胛穩定肌與旋轉肌袖肌力衰竭，投手無法維持重複的出手投球幾何角度，出手點 3D 空間雲端離散度顯著擴大。 | 1.5 ~ 2.0 cm | **> 3.8 cm** (動作變異度過大) |
-| **Fastball Velocity Drop**<br>(四縫線均速衰退 $\Delta V$) | 球威強度 | **下肢推蹬與前臂旋前力減弱**<br>投球時速連續 2~3 場下滑 2~4 km/h，預告手臂代償風險與即將被打爆。 | 152 ~ 155 km/h | **下滑 > 3.0 km/h** |
-| **iVB Flatness**<br>(垂直誘發位移衰竭) | 球路尾勁 | **轉速效率與縫線轉軸偏移（Spin Axis Drift）**<br>轉速與旋轉效率降低，球路進壘視覺垂直竄升感喪失（球質變平），揮空率驟降。 | 17 ~ 19 in | **< 15.0 in** |
+| **Release Point 3D Dispersion**<br>(出手點 3D 空間離散度 $\sigma_{rel}$) | 控球穩定度 | **肩袖肌群與核心穩定失調**<br>當肩胛穩定肌與旋轉肌袖肌力衰竭，投手無法維持重複的出手投球幾何角度，出手點空間離散度顯著擴大。 | 1.5 ~ 2.0 cm | **> 3.8 cm** (動作變異度過大) |
+| **Fastball Velocity Drop**<br>(四縫線均速衰退 $\Delta V$) | 球威強度 | **下肢推蹬與前臂旋前力減弱**<br>投球時速連續 2~3 場下滑 2~4 km/h，預告手臂代償風險與即將被打爆。 | 150 ~ 154 km/h | **下滑 > 3.0 km/h** |
+| **Vertical Movement**<br>(垂直誘發位移衰竭) | 球路尾勁 | **轉速效率與縫線轉軸偏移（Spin Axis Drift）**<br>轉速與旋轉效率降低，球路進壘視覺垂直竄升感喪失（球質變平），揮空率驟降。 | 15 ~ 18 in | **< 14.0 in** |
 
 ---
 
-## 🧮 微疲勞綜合風險指數（Micro-Fatigue Index, MFI）
-
-MFI 透過對各滾動特徵進行動態常態化評分，加權融合為 **0 ~ 100** 分之綜合風險指數：
-
-### 打者 MFI 計算公式：
-$$MFI_{batter} = w_1 \cdot S(O\text{-Swing}\%) + w_2 \cdot S(Z\text{-Whiff}\%) + w_3 \cdot S(HardHit\%)$$
-其中各特徵正規化分數 $S(\cdot)$ 定義為：
-- $S(O\text{-Swing}\%) = \text{clip}\left(\frac{\text{Roll\_OSwing} - 0.20}{0.42 - 0.20}, 0, 1\right) \times 100$
-- $S(Z\text{-Whiff}\%) = \text{clip}\left(\frac{\text{Roll\_ZWhiff} - 0.07}{0.24 - 0.07}, 0, 1\right) \times 100$
-- $S(HardHit\%) = \text{clip}\left(\frac{0.45 - \text{Roll\_HardHit}}{0.45 - 0.22}, 0, 1\right) \times 100$
-- 預設權重係數：$w_1 = 0.40$（神經決策）, $w_2 = 0.35$（揮棒微調）, $w_3 = 0.25$（動力輸出）。
-
-### 燈號警示等級矩陣：
-- 🟢 **正常低風險（綠燈）**：$MFI < 50$ — 維持常規訓練與先發調度。
-- 🟡 **觀察期（黃燈）**：$50 \le MFI < 70$ — 進入警戒，建議賽前打擊練習減量 30%，監控 HRV 心率變異度。
-- 🔴 **高風險預警（紅燈）**：$MFI \ge 70$ — **強制啟動黃金介入窗口**！立即轉任 DH 或給予 2~3 天輪休，避免受傷與長達一個月的打擊低潮。
-
----
-
-## 🖥️ 戰情室系統五大功能核心
+## 🖥️ 戰情室系統核心功能
 
 1. **直覺切換之球員卡矩陣 (Direct Card Click Navigation)**：
-   - 點選球員卡即可切換選取，下方**絕不出現任何多餘實體名字按鈕**。
-   - **視覺對比**：未選取時為乾淨白底；選取中之卡片**直接轉為經典深海軍藍（#0A2C51），球員姓名及守備位置完美反白純白**，階層一目了然。
-   - 右側快速切換「一軍登錄名單」與「二軍培訓名單」，即時載入所屬層級選手。
+   - 點選球員卡即可切換選取，下方**無任何多餘實體名字按鈕**。
+   - **視覺對比**：未選取時為乾淨白底；選取中之卡片**直接轉為經典深海軍藍（#0A2C51），球員姓名及守備位置完美反白純白**。
 2. **賽季時序深度診斷 (Temporal Diagnostics & 10-Game Table)**：
-   - 垂直同步雙圖（Plotly Subplots）：上方為「累積打擊率/防禦率（落後指標）」，下方為「MFI 與三大先行指標走勢」。
-   - 高亮半透明金色色塊標記「10~14 天黃金預警窗口」。
-   - **近 10 場微疲勞先行指標數值明細表**：以原生美觀表格呈現，無程式碼干擾，支援手機橫向滑動。
+   - 垂直同步雙圖（Plotly Subplots）：上方為「微疲勞指數 (MFI) 與警戒閾值線」，下方為「累積 ERA / 打擊率（落後指標）」。
+   - **近 10 場微疲勞先行指標數值明細表**：以原生高對比表格呈現，無程式碼干擾，支援手機橫向滑動。
 3. **運科生理因果解構 (Biomechanical Telemetry)**：
    - 即時遙測神經肌肉特徵數值，詳細分析視知覺反應、擊球動力鏈或投手出手點空間變異度。
 4. **負荷管理反事實模擬器 (What-If Sandbox)**：
-   - 實時對比「在第 48 場及時處方介入」vs「放任疲勞至第 60 場崩盤」的季末打擊率/防禦率差異。
-   - 實時計算保全之勝場貢獻值（WAR）與受傷風險降幅。
+   - 實時對比「輪休 1~5 天與調整用球數」對季末疲勞緩解的預期成效。
 5. **教練調度與防護處方箋 (Actionable Prescriptions & 1-Click Export)**：
    - 輸出三大面向處方：總教練出賽調度、打擊/體能訓練量級管制、防護員物理治療介入。
-   - **一鍵下載專屬調度處方箋**（`.txt`），內容包含球團名稱、名單層級、當前 MFI 指數與具體維護指令。
+   - **一鍵下載專屬調度處方箋**（`.txt`）。
 
 ---
 
-## 📱 手機與平板專屬響應式優化 (Mobile & Tablet Responsive Design)
+## 📱 手機與平板專屬響應式優化 (Mobile & Tablet Optimization)
 
-系統特別針對行動裝置與平板進行深度排版調校：
-- **手機螢幕（< 768px）**：
-  - 頂部戰情總覽自動縮放標題，KPI 卡片平滑轉為雙欄排列。
-  - 球員卡矩陣自動適應為 2 欄網格，卡片內距最佳化，按壓觸控精準。
-  - 時序明細表格支援觸控橫向流暢滾動（`-webkit-overflow-scrolling: touch`）。
-  - 處方指南卡自動切換為全寬單欄檢視。
-- **平板螢幕（768px ~ 1024px）**：
-  - 球員卡自動呈現 4 欄適中比例，提供沉浸式教練團檢視體驗。
-
----
-
-## 🚀 本地端安裝與啟動步驟 (Local Quickstart)
-
-### 步驟 1：複製儲存庫
-```bash
-git clone https://github.com/ericlin241/baseball-mfews.git
-cd baseball-mfews
-```
-
-### 步驟 2：安裝相依套件
-建議使用虛擬環境（Python 3.10+）：
-```bash
-python3 -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-pip install -r requirements.txt
-```
-
-### 步驟 3：啟動 Streamlit 戰情室
-```bash
-streamlit run app.py
-```
-啟動後瀏覽器將自動開啟 `http://localhost:8501`。
-
----
-
-## 🌐 GitHub Pages 免後端一鍵線上運行 (Serverless via WebAssembly)
-
-本專案完全支援 **純前端 WebAssembly（stlite）** 執行！無需任何後端伺服器，直接透過瀏覽器端執行 Python、Pandas、NumPy 與 Plotly：
-
-👉 **線上即刻體驗**：[https://ericlin241.github.io/baseball-mfews/](https://ericlin241.github.io/baseball-mfews/)
+- **原生 App 觸控體驗（禁止縮放）**：
+  - 嚴格配置 `user-scalable=no, maximum-scale=1.0, viewport-fit=cover`，防止手機與平板雙擊與雙指放大誤觸。
+  - 配置 `touch-action: pan-x pan-y` 與 `touch-action: manipulation`，消除點擊延遲。
+- **手機端自適應 2×2 導覽頁籤網格**：
+  - 在小螢幕設備上將四大分頁重組為 2 欄 × 2 列，字體完整呈現無溢出。
+- **防圖表滾動攔截**：
+  - Plotly 圖表全面注入 `scrollZoom: false`，避免行動端滾動滑頁時被圖表綁架手勢。
 
 ---
 
@@ -175,10 +133,17 @@ streamlit run app.py
 
 ```
 baseball-mfews/
-├── app.py              # 核心主程式：包含 252 位球員模擬引擎、MFI 計算、Plotly 視覺化與處方箋產製
-├── requirements.txt    # 本地端環境相依套件清單 (streamlit, pandas, numpy, plotly)
-├── README.md           # 專案完整參賽技術文件與運科原理
-└── index.html          # GitHub Pages 專用 stlite (WebAssembly) 免後端單頁包裝檔
+├── index.html              # 戰情室純前端核心單頁應用 (0.3s 極速秒開，無 WASM 延遲)
+├── players_data.js         # 前端資料庫：252 位 CPBL 球員逐場時序數據 (JSONP / JS 模組)
+├── players_data.json       # 結構化資料庫：由 rebas.tw 原始資料萃取之完整球員資料
+├── etl_rebas_data.py       # ETL 腳本：解析 rebas.tw 逐球數據並計算 MFI 微疲勞指標
+├── logo.png                # RB 官方標準徽章去背圖檔
+├── og-preview.png          # 1200x630 社群分享高解析預覽縮圖
+├── favicon.svg             # 向量 Favicon 標誌圖示
+├── favicon.png             # 點陣 Favicon (32x32)
+├── apple-touch-icon.png    # iOS 主畫面書籤圖示 (180x180)
+├── app.py                  # Streamlit 本地端戰情室備用程式
+└── README.md               # 專案技術文件與參賽說明
 ```
 
 ---
@@ -187,4 +152,5 @@ baseball-mfews/
 
 - **專案主題**：賽季微疲勞先行指標預警系統（Micro-Fatigue Early Warning System, MFEWS）
 - **核心價值**：跨越落後指標盲區，奪回 10~14 天黃金調度窗口，打造職棒球團戰情室規格的運動科學決策輔助系統。
+- **數據致謝**：特別感謝 **rebas.tw 野球革命** 提供開放數據共享計劃，為台灣棒球運科數據分析注入強大動能。
 - **開源授權**：MIT License
