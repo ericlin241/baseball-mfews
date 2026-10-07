@@ -1449,10 +1449,10 @@
           badgeText = '🟢 正常';
         }
 
-        const m1 = pData.m1[i] !== null ? pData.m1[i] : '-';
-        const m2 = pData.m2[i] !== null ? pData.m2[i] : '-';
-        const m3 = pData.m3[i] !== null ? pData.m3[i] : '-';
-        const pVal = pData.perf[i] !== null ? pData.perf[i] : '-';
+        const m1 = pData.m1[i] !== null ? (isPitcher ? `${pData.m1[i]} cm` : `${pData.m1[i]}%`) : '-';
+        const m2 = pData.m2[i] !== null ? (isPitcher ? `${pData.m2[i]} km/h` : `${pData.m2[i]}%`) : '-';
+        const m3 = pData.m3[i] !== null ? (isPitcher ? `${pData.m3[i]} in` : `${pData.m3[i]}%`) : '-';
+        const pVal = pData.perf[i] !== null ? (isPitcher ? Number(pData.perf[i]).toFixed(2) : Number(pData.perf[i]).toFixed(3)) : '-';
 
         const row = document.createElement('tr');
         row.innerHTML = `
