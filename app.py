@@ -552,6 +552,68 @@ st.markdown("""
         color: #FFFFFF !important;
     }
 
+    /* =========================================================================
+       4 大功能導覽頁籤：填滿橫欄左右兩側並且置中 (Full-Width Centered Tabs)
+       ========================================================================= */
+    div[data-baseweb="tab-list"],
+    div[data-testid="stTabs"] [role="tablist"],
+    .stTabs [role="tablist"] {
+        display: flex !important;
+        width: 100% !important;
+        justify-content: space-between !important;
+        gap: 6px !important;
+        border-bottom: 2px solid #E2ECF8 !important;
+        padding-bottom: 2px !important;
+        background: transparent !important;
+    }
+
+    div[data-baseweb="tab"],
+    button[data-baseweb="tab"],
+    div[data-testid="stTabs"] button[role="tab"],
+    .stTabs button[role="tab"] {
+        flex: 1 1 0 !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        text-align: center !important;
+        padding: 12px 6px !important;
+        font-size: 15px !important;
+        font-weight: 700 !important;
+        color: #475569 !important;
+        border-radius: 8px 8px 0 0 !important;
+        border: none !important;
+        transition: all 0.2s ease !important;
+        white-space: nowrap !important;
+    }
+
+    div[data-baseweb="tab"] p,
+    button[data-baseweb="tab"] p,
+    div[data-testid="stTabs"] button[role="tab"] p {
+        margin: 0 !important;
+        padding: 0 !important;
+        text-align: center !important;
+        font-size: 15px !important;
+        font-weight: 700 !important;
+    }
+
+    div[data-baseweb="tab"][aria-selected="true"],
+    button[data-baseweb="tab"][aria-selected="true"],
+    div[data-testid="stTabs"] button[role="tab"][aria-selected="true"],
+    .stTabs button[role="tab"][aria-selected="true"] {
+        color: #0A2C51 !important;
+        background: #E2ECF8 !important;
+        border-bottom: 3px solid #0A2C51 !important;
+    }
+
+    div[data-baseweb="tab"]:hover,
+    button[data-baseweb="tab"]:hover,
+    div[data-testid="stTabs"] button[role="tab"]:hover {
+        color: #0A2C51 !important;
+        background: rgba(226, 236, 248, 0.5) !important;
+    }
+
     /* 手機與平板專屬響應式排版優化 (Responsive Optimization) */
     @media (max-width: 1024px) and (min-width: 769px) {
         /* 平板版：球員卡每行 4 欄 */

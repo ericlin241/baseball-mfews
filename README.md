@@ -9,7 +9,7 @@
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 
-🌐 **GitHub Pages 線上即時展示（純前端 WebAssembly 免安裝）**：  
+🌐 **GitHub Pages 線上即時展示（極速秒開純前端架構，支援手機平板電腦免安裝）**：  
 👉 [https://ericlin241.github.io/baseball-mfews/](https://ericlin241.github.io/baseball-mfews/)
 
 ---
