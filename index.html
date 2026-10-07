@@ -20,7 +20,7 @@
   <meta property="og:image" content="https://ericlin241.github.io/baseball-mfews/og-preview.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
-  <meta property="og:image:alt" content="MFEWS 賽季微疲勞先行指標預警系統 戰情室儀表板" />
+  <meta property="og:image:alt" content="MFEWS 賽季微疲勞先行指標預警系統 戰情儀表板" />
   <meta property="og:site_name" content="MFEWS 棒球微疲勞預警戰情室" />
   <meta property="og:locale" content="zh_TW" />
 
@@ -43,38 +43,42 @@
 
   <style>
     :root {
-      /* 戰情室專屬高對比色彩體系 (War Room HUD Palette) */
-      --wr-bg-main: #060E1A;
-      --wr-bg-radial: radial-gradient(circle at 50% 0%, #0F233F 0%, #060E1A 75%);
-      --wr-surface-card: rgba(11, 26, 48, 0.85);
-      --wr-surface-card-hover: rgba(16, 36, 68, 0.95);
-      --wr-border-dim: rgba(56, 189, 248, 0.15);
-      --wr-border-bright: rgba(56, 189, 248, 0.45);
-      --wr-border-glow: 0 0 16px rgba(56, 189, 248, 0.25);
+      /* RB 官方標準紅藍白色彩體系 */
+      --theme-navy: #0A2C51;        /* 核心主視覺深藍 (RGB 10, 44, 81) */
+      --theme-navy-hover: #15406E;  /* 亮海軍藍 */
+      --theme-navy-dark: #071E38;   /* 極致深藍 */
+      --theme-navy-subtle: #EDF3F9; /* 極淺藍底色 */
       
-      --wr-cyan: #38BDF8;
-      --wr-cyan-glow: rgba(56, 189, 248, 0.4);
-      --wr-blue-core: #0A2C51;
-      --wr-blue-active: #0284C7;
+      --theme-red: #E8383D;         /* 核心強調赤紅 (RGB 232, 56, 61) */
+      --theme-red-hover: #C82328;   /* 深赤紅 */
+      --theme-red-subtle: #FEECEE;  /* 極淺紅警示底色 */
       
-      --wr-danger: #F43F5E;
-      --wr-danger-bg: rgba(244, 63, 94, 0.15);
-      --wr-danger-glow: 0 0 16px rgba(244, 63, 94, 0.45);
+      --theme-white: #FFFFFF;       /* 乾淨純白 */
+      --theme-canvas: #F8FAFC;      /* 淺色畫布底色 */
+      --theme-card-bg: #FFFFFF;     /* 純白卡片面板 */
       
-      --wr-warning: #FBBF24;
-      --wr-warning-bg: rgba(251, 191, 36, 0.15);
+      --theme-border: #E2E8F0;      /* 精緻淺灰框線 */
+      --theme-border-subtle: #F1F5F9;
+      --theme-border-navy: rgba(10, 44, 81, 0.18);
       
-      --wr-success: #10B981;
-      --wr-success-bg: rgba(16, 185, 129, 0.15);
+      --theme-text-primary: #0A2C51;   /* 主標題深藍字體 */
+      --theme-text-body: #334155;      /* 內文深石板灰 */
+      --theme-text-secondary: #64748B; /* 次要說明灰 */
+      --theme-text-muted: #94A3B8;     /* 輔助標記灰 */
       
-      --wr-text-primary: #F8FAFC;
-      --wr-text-secondary: #94A3B8;
-      --wr-text-muted: #64748B;
+      --theme-warning: #D97706;     /* 觀察期警戒琥珀黃 */
+      --theme-warning-subtle: #FEF3C7;
+      --theme-success: #059669;     /* 正常健康翠綠 */
+      --theme-success-subtle: #ECFDF5;
       
-      --wr-radius-lg: 14px;
-      --wr-radius-md: 10px;
-      --wr-radius-sm: 6px;
-      --wr-radius-pill: 9999px;
+      --theme-radius-lg: 14px;
+      --theme-radius-md: 10px;
+      --theme-radius-sm: 6px;
+      --theme-radius-pill: 9999px;
+      
+      --theme-shadow-sm: 0 1px 3px rgba(10, 44, 81, 0.05);
+      --theme-shadow-md: 0 4px 16px -2px rgba(10, 44, 81, 0.06), 0 2px 6px -1px rgba(10, 44, 81, 0.03);
+      --theme-shadow-lg: 0 10px 25px -4px rgba(10, 44, 81, 0.08), 0 4px 10px -2px rgba(10, 44, 81, 0.04);
     }
 
     * {
@@ -84,10 +88,13 @@
     }
 
     body {
-      background: var(--wr-bg-main);
-      background-image: var(--wr-bg-radial);
+      background-color: var(--theme-canvas);
+      background-image: 
+        radial-gradient(circle at 95% 8%, rgba(232, 56, 61, 0.035) 0%, transparent 40%),
+        radial-gradient(circle at 5% 20%, rgba(10, 44, 81, 0.04) 0%, transparent 45%),
+        linear-gradient(180deg, #F8FAFC 0%, #FFFFFF 25%, #F8FAFC 100%);
       background-attachment: fixed;
-      color: var(--wr-text-primary);
+      color: var(--theme-text-body);
       font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       line-height: 1.5;
       -webkit-font-smoothing: antialiased;
@@ -96,17 +103,19 @@
       position: relative;
     }
 
-    /* 戰情室高科技背景網格微光 */
-    body::before {
-      content: "";
+    /* 巧妙融入背景的大型 LOGO 水印 */
+    .bg-watermark {
       position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: 
-        linear-gradient(rgba(56, 189, 248, 0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(56, 189, 248, 0.03) 1px, transparent 1px);
-      background-size: 36px 36px;
+      top: -40px;
+      right: -50px;
+      width: 560px;
+      height: 560px;
+      background: url('logo.png') no-repeat center center;
+      background-size: contain;
+      opacity: 0.038;
       pointer-events: none;
       z-index: 0;
+      filter: drop-shadow(0 10px 25px rgba(10, 44, 81, 0.1));
     }
 
     .container {
@@ -119,9 +128,11 @@
 
     /* 頂部戰情室主視覺 Header */
     .war-room-header {
-      background: linear-gradient(135deg, rgba(10, 44, 81, 0.85) 0%, rgba(6, 22, 44, 0.95) 100%);
-      border: 1px solid var(--wr-border-dim);
-      border-radius: var(--wr-radius-lg);
+      position: relative;
+      background: linear-gradient(135deg, #FFFFFF 0%, #F8FAFC 100%);
+      border: 1px solid var(--theme-border);
+      border-top: 4px solid var(--theme-navy);
+      border-radius: var(--theme-radius-lg);
       padding: 22px 28px;
       margin: 22px 0 24px 0;
       display: flex;
@@ -129,47 +140,79 @@
       align-items: center;
       flex-wrap: wrap;
       gap: 16px;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(16px);
+      box-shadow: var(--theme-shadow-md);
+      overflow: hidden;
+    }
+
+    /* Header 右側巧妙融入漸層 LOGO 圖騰 */
+    .war-room-header::after {
+      content: "";
+      position: absolute;
+      top: -15px;
+      right: 170px;
+      width: 180px;
+      height: 180px;
+      background: url('logo.png') no-repeat center center;
+      background-size: contain;
+      opacity: 0.055;
+      pointer-events: none;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .brand-logo-img {
+      width: 52px;
+      height: 52px;
+      object-fit: contain;
+      filter: drop-shadow(0 2px 6px rgba(10, 44, 81, 0.15));
+      transition: transform 0.25s ease;
+      cursor: pointer;
+    }
+
+    .brand-logo-img:hover {
+      transform: scale(1.06) rotate(3deg);
     }
 
     .header-status-line {
       display: flex;
       align-items: center;
       gap: 10px;
-      margin-bottom: 6px;
+      margin-bottom: 4px;
     }
 
     .pulse-beacon {
-      width: 10px;
-      height: 10px;
-      background-color: var(--wr-success);
+      width: 9px;
+      height: 9px;
+      background-color: var(--theme-success);
       border-radius: 50%;
-      box-shadow: 0 0 10px var(--wr-success);
+      box-shadow: 0 0 8px var(--theme-success);
       animation: beacon-pulse 2s infinite ease-in-out;
     }
 
     @keyframes beacon-pulse {
-      0% { transform: scale(0.9); opacity: 0.8; box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-      70% { transform: scale(1.1); opacity: 1; box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
-      100% { transform: scale(0.9); opacity: 0.8; box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+      0% { transform: scale(0.9); opacity: 0.8; box-shadow: 0 0 0 0 rgba(5, 150, 105, 0.7); }
+      70% { transform: scale(1.1); opacity: 1; box-shadow: 0 0 0 6px rgba(5, 150, 105, 0); }
+      100% { transform: scale(0.9); opacity: 0.8; box-shadow: 0 0 0 0 rgba(5, 150, 105, 0); }
     }
 
     .telemetry-tag {
       font-family: 'JetBrains Mono', monospace;
       font-size: 11.5px;
       font-weight: 700;
-      color: var(--wr-cyan);
-      letter-spacing: 0.08em;
+      color: var(--theme-navy);
+      letter-spacing: 0.06em;
       text-transform: uppercase;
     }
 
     .header-text h1 {
-      font-size: 25px;
+      font-size: 24px;
       font-weight: 900;
       letter-spacing: -0.01em;
-      color: #FFFFFF;
-      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+      color: var(--theme-navy);
       display: flex;
       align-items: center;
       gap: 10px;
@@ -177,8 +220,9 @@
 
     .header-text p {
       font-size: 13.5px;
-      color: var(--wr-text-secondary);
-      margin-top: 4px;
+      color: var(--theme-text-secondary);
+      margin-top: 3px;
+      font-weight: 500;
     }
 
     .header-right {
@@ -190,18 +234,19 @@
 
     .clock-badge {
       font-family: 'JetBrains Mono', monospace;
-      background: rgba(15, 34, 64, 0.7);
-      border: 1px solid var(--wr-border-dim);
+      background: var(--theme-navy-subtle);
+      border: 1px solid rgba(10, 44, 81, 0.15);
       padding: 6px 14px;
-      border-radius: var(--wr-radius-sm);
-      font-size: 12px;
-      color: var(--wr-cyan);
-      letter-spacing: 0.04em;
+      border-radius: var(--theme-radius-sm);
+      font-size: 12.5px;
+      font-weight: 700;
+      color: var(--theme-navy);
+      letter-spacing: 0.03em;
     }
 
     .copyright-badge {
       font-size: 12px;
-      color: var(--wr-text-muted);
+      color: var(--theme-text-muted);
       font-weight: 600;
     }
 
@@ -214,12 +259,11 @@
     }
 
     .kpi-card {
-      background: var(--wr-surface-card);
-      border: 1px solid var(--wr-border-dim);
-      border-radius: var(--wr-radius-md);
-      padding: 16px 20px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
-      backdrop-filter: blur(12px);
+      background: var(--theme-card-bg);
+      border: 1px solid var(--theme-border);
+      border-radius: var(--theme-radius-md);
+      padding: 18px 20px;
+      box-shadow: var(--theme-shadow-md);
       transition: all 0.2s ease;
       position: relative;
       overflow: hidden;
@@ -228,21 +272,20 @@
     .kpi-card::before {
       content: "";
       position: absolute;
-      top: 0; left: 0; width: 100%; height: 3px;
-      background: linear-gradient(90deg, var(--wr-cyan), transparent);
-      opacity: 0.4;
+      top: 0; left: 0; width: 100%; height: 3.5px;
+      background: linear-gradient(90deg, var(--theme-navy), transparent);
     }
 
     .kpi-card:hover {
-      border-color: var(--wr-border-bright);
-      box-shadow: var(--wr-border-glow);
+      border-color: rgba(10, 44, 81, 0.3);
+      box-shadow: var(--theme-shadow-lg);
       transform: translateY(-2px);
     }
 
     .kpi-title {
       font-size: 13px;
       font-weight: 700;
-      color: var(--wr-text-secondary);
+      color: var(--theme-text-secondary);
       display: flex;
       align-items: center;
       gap: 6px;
@@ -253,36 +296,38 @@
       font-family: 'JetBrains Mono', monospace;
       font-size: 28px;
       font-weight: 800;
-      color: var(--wr-cyan);
+      color: var(--theme-navy);
       line-height: 1.2;
       margin-bottom: 4px;
     }
 
     .kpi-sub {
       font-size: 11.5px;
-      color: var(--wr-text-muted);
+      color: var(--theme-text-muted);
       font-weight: 500;
     }
 
     .kpi-card.alert-card::before {
-      background: linear-gradient(90deg, var(--wr-danger), transparent);
-      opacity: 0.8;
+      background: linear-gradient(90deg, var(--theme-red), transparent);
     }
 
     .kpi-card.alert-card .kpi-value {
-      color: var(--wr-danger);
-      text-shadow: 0 0 14px rgba(244, 63, 94, 0.4);
+      color: var(--theme-red);
+    }
+
+    .kpi-card.warning-card::before {
+      background: linear-gradient(90deg, var(--theme-warning), transparent);
     }
 
     .kpi-card.warning-card .kpi-value {
-      color: var(--wr-warning);
+      color: var(--theme-warning);
     }
 
     /* 球隊與名單過濾控制列 */
     .filter-panel {
-      background: var(--wr-surface-card);
-      border: 1px solid var(--wr-border-dim);
-      border-radius: var(--wr-radius-md);
+      background: var(--theme-card-bg);
+      border: 1px solid var(--theme-border);
+      border-radius: var(--theme-radius-md);
       padding: 16px 22px;
       margin-bottom: 22px;
       display: flex;
@@ -290,14 +335,13 @@
       align-items: center;
       flex-wrap: wrap;
       gap: 16px;
-      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.2);
-      backdrop-filter: blur(12px);
+      box-shadow: var(--theme-shadow-sm);
     }
 
     .filter-title {
       font-size: 17px;
       font-weight: 900;
-      color: #FFFFFF;
+      color: var(--theme-navy);
       display: flex;
       align-items: center;
       gap: 8px;
@@ -313,9 +357,9 @@
 
     .roster-toggle-group {
       display: inline-flex;
-      background: rgba(10, 25, 48, 0.8);
-      border: 1px solid var(--wr-border-dim);
-      border-radius: var(--wr-radius-pill);
+      background: var(--theme-canvas);
+      border: 1px solid var(--theme-border);
+      border-radius: var(--theme-radius-pill);
       padding: 3px;
     }
 
@@ -323,35 +367,35 @@
       border: none;
       background: transparent;
       padding: 7px 18px;
-      border-radius: var(--wr-radius-pill);
+      border-radius: var(--theme-radius-pill);
       font-size: 13.5px;
       font-weight: 700;
-      color: var(--wr-text-secondary);
+      color: var(--theme-text-secondary);
       cursor: pointer;
       transition: all 0.2s ease;
     }
 
     .roster-btn.active {
-      background: var(--wr-blue-active);
+      background: var(--theme-navy);
       color: #FFFFFF;
-      box-shadow: 0 0 12px rgba(2, 132, 199, 0.5);
+      box-shadow: 0 2px 8px rgba(10, 44, 81, 0.25);
     }
 
     .team-select-wrapper select {
       padding: 8px 18px;
-      border-radius: var(--wr-radius-sm);
-      border: 1px solid var(--wr-border-bright);
-      background: rgba(10, 25, 48, 0.95);
+      border-radius: var(--theme-radius-sm);
+      border: 1.5px solid var(--theme-navy);
+      background: #FFFFFF;
       font-size: 14px;
       font-weight: 700;
-      color: var(--wr-cyan);
+      color: var(--theme-navy);
       cursor: pointer;
       outline: none;
       transition: all 0.2s ease;
     }
 
     .team-select-wrapper select:focus {
-      box-shadow: var(--wr-border-glow);
+      box-shadow: 0 0 0 3px rgba(10, 44, 81, 0.15);
     }
 
     /* 球員字卡網格 (字卡即為按鈕，徹底移除白色姓名按鈕) */
@@ -365,13 +409,13 @@
       gap: 10px;
     }
 
-    /* 戰情室專屬球員字卡 */
+    /* RB 專屬淺色球員字卡 */
     .player-card-btn {
       width: 100%;
       min-height: 104px;
-      background: rgba(13, 31, 58, 0.75);
-      border: 1px solid var(--wr-border-dim);
-      border-radius: var(--wr-radius-md);
+      background: #FFFFFF;
+      border: 1px solid var(--theme-border);
+      border-radius: var(--theme-radius-md);
       padding: 12px 6px;
       display: flex;
       flex-direction: column;
@@ -381,22 +425,20 @@
       cursor: pointer;
       user-select: none;
       transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      box-shadow: var(--theme-shadow-sm);
       outline: none;
-      backdrop-filter: blur(8px);
     }
 
     .player-card-btn:hover {
       transform: translateY(-2px);
-      border-color: var(--wr-cyan);
-      background: var(--wr-surface-card-hover);
-      box-shadow: var(--wr-border-glow);
+      border-color: var(--theme-navy);
+      box-shadow: var(--theme-shadow-md);
     }
 
     .player-card-btn .p-name {
       font-size: 15px;
       font-weight: 800;
-      color: #FFFFFF;
+      color: var(--theme-navy);
       margin-bottom: 2px;
       letter-spacing: -0.01em;
       white-space: nowrap;
@@ -408,7 +450,7 @@
     .player-card-btn .p-pos {
       font-size: 11px;
       font-weight: 600;
-      color: var(--wr-text-secondary);
+      color: var(--theme-text-secondary);
       margin-bottom: 6px;
       white-space: nowrap;
     }
@@ -417,36 +459,35 @@
       font-size: 10.5px;
       font-weight: 700;
       padding: 2.5px 8px;
-      border-radius: var(--wr-radius-pill);
+      border-radius: var(--theme-radius-pill);
       display: inline-block;
-      background: rgba(255, 255, 255, 0.08);
-      color: var(--wr-text-secondary);
-      border: 1px solid rgba(255, 255, 255, 0.12);
       line-height: 1.2;
       white-space: nowrap;
+      background: var(--theme-canvas);
+      color: var(--theme-text-secondary);
+      border: 1px solid var(--theme-border);
     }
 
-    /* 已選取狀態 (高電壓能量深藍，發光青藍外框，文字反白純白) */
+    /* 已選取狀態 (背景直接變深藍 #0A2C51，文字與守備反白純白) */
     .player-card-btn.active {
-      background: linear-gradient(135deg, #0284C7 0%, #034873 100%) !important;
-      border: 1.5px solid var(--wr-cyan) !important;
-      box-shadow: 0 0 20px rgba(56, 189, 248, 0.4), inset 0 0 12px rgba(56, 189, 248, 0.25) !important;
+      background: linear-gradient(135deg, #0A2C51 0%, #15406E 100%) !important;
+      border: 1.5px solid var(--theme-navy) !important;
+      box-shadow: 0 4px 16px rgba(10, 44, 81, 0.28) !important;
       transform: translateY(-2px) !important;
     }
 
     .player-card-btn.active .p-name {
       color: #FFFFFF !important;
-      text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
     }
 
     .player-card-btn.active .p-pos {
-      color: #E0F2FE !important;
+      color: #E2E8F0 !important;
     }
 
     .player-card-btn.active .p-badge {
-      background: rgba(255, 255, 255, 0.22) !important;
+      background: rgba(255, 255, 255, 0.2) !important;
       color: #FFFFFF !important;
-      border: 1px solid rgba(255, 255, 255, 0.35) !important;
+      border: 1px solid rgba(255, 255, 255, 0.3) !important;
     }
 
     /* =========================================================================
@@ -457,8 +498,8 @@
       width: 100%;
       justify-content: space-between;
       gap: 6px;
-      border-bottom: 2px solid var(--wr-border-dim);
-      padding-bottom: 3px;
+      border-bottom: 2.5px solid var(--theme-border);
+      padding-bottom: 0px;
       margin: 22px 0 24px 0;
     }
 
@@ -473,10 +514,10 @@
       padding: 14px 8px;
       font-size: 15px;
       font-weight: 800;
-      color: var(--wr-text-secondary);
-      border-radius: var(--wr-radius-sm) var(--wr-radius-sm) 0 0;
+      color: var(--theme-text-secondary);
+      border-radius: var(--theme-radius-sm) var(--theme-radius-sm) 0 0;
       border: none;
-      background: transparent;
+      background: var(--theme-canvas);
       cursor: pointer;
       transition: all 0.2s ease;
       white-space: nowrap;
@@ -484,15 +525,15 @@
     }
 
     .tab-btn:hover {
-      color: var(--wr-cyan);
-      background: rgba(56, 189, 248, 0.08);
+      color: var(--theme-navy);
+      background: #E2E8F0;
     }
 
     .tab-btn.active {
       color: #FFFFFF;
-      background: linear-gradient(180deg, rgba(56, 189, 248, 0.16) 0%, rgba(56, 189, 248, 0.04) 100%);
-      border-bottom: 3px solid var(--wr-cyan);
-      box-shadow: 0 4px 14px rgba(56, 189, 248, 0.2);
+      background: var(--theme-navy);
+      border-bottom: 3.5px solid var(--theme-red);
+      box-shadow: 0 4px 14px rgba(10, 44, 81, 0.15);
     }
 
     .tab-content {
@@ -503,15 +544,14 @@
       display: block;
     }
 
-    /* 戰情面板卡片容器 (Tactical HUD Card Panel) */
+    /* 戰情面板卡片容器 (Card Panel) */
     .card-panel {
-      background: var(--wr-surface-card);
-      border: 1px solid var(--wr-border-dim);
-      border-radius: var(--wr-radius-lg);
+      background: var(--theme-card-bg);
+      border: 1px solid var(--theme-border);
+      border-radius: var(--theme-radius-lg);
       padding: 24px;
       margin-bottom: 24px;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
-      backdrop-filter: blur(16px);
+      box-shadow: var(--theme-shadow-md);
     }
 
     .card-panel-header {
@@ -522,13 +562,13 @@
       gap: 12px;
       margin-bottom: 20px;
       padding-bottom: 14px;
-      border-bottom: 1px solid var(--wr-border-dim);
+      border-bottom: 1px solid var(--theme-border);
     }
 
     .panel-title {
       font-size: 17px;
       font-weight: 800;
-      color: #FFFFFF;
+      color: var(--theme-navy);
       display: flex;
       align-items: center;
       gap: 8px;
@@ -536,26 +576,26 @@
     }
 
     .panel-badge {
-      background: rgba(56, 189, 248, 0.12);
-      border: 1px solid var(--wr-border-bright);
-      color: var(--wr-cyan);
+      background: var(--theme-navy-subtle);
+      border: 1px solid var(--theme-border-navy);
+      color: var(--theme-navy);
       padding: 5px 16px;
-      border-radius: var(--wr-radius-pill);
+      border-radius: var(--theme-radius-pill);
       font-size: 13px;
       font-weight: 700;
       font-family: 'JetBrains Mono', monospace;
     }
 
-    /* 閾值滑桿控制區 (Tactical Telemetry Sliders) */
+    /* 閾值滑桿控制區 (Sliders) */
     .slider-row {
       display: flex;
       gap: 20px;
       flex-wrap: wrap;
       margin-bottom: 20px;
-      background: rgba(9, 23, 44, 0.7);
-      border-radius: var(--wr-radius-md);
+      background: var(--theme-canvas);
+      border-radius: var(--theme-radius-md);
       padding: 16px 20px;
-      border: 1px solid var(--wr-border-dim);
+      border: 1px solid var(--theme-border);
     }
 
     .slider-item {
@@ -568,7 +608,7 @@
     .slider-label {
       font-size: 13.5px;
       font-weight: 700;
-      color: var(--wr-text-primary);
+      color: var(--theme-navy);
       display: flex;
       justify-content: space-between;
     }
@@ -576,17 +616,18 @@
     .slider-item input[type="range"] {
       width: 100%;
       height: 6px;
-      accent-color: var(--wr-cyan);
+      accent-color: var(--theme-navy);
       cursor: pointer;
     }
 
-    /* 近 10 場明細表格 (Tactical HUD Table) */
+    /* 近 10 場明細表格 (Table) */
     .diag-table-container {
       width: 100%;
       overflow-x: auto;
       margin-top: 20px;
-      border-radius: var(--wr-radius-md);
-      border: 1px solid var(--wr-border-dim);
+      border-radius: var(--theme-radius-md);
+      border: 1px solid var(--theme-border);
+      box-shadow: var(--theme-shadow-sm);
     }
 
     .diag-table {
@@ -597,59 +638,59 @@
     }
 
     .diag-table th {
-      background: rgba(16, 38, 70, 0.85);
-      color: var(--wr-cyan);
+      background: var(--theme-navy);
+      color: #FFFFFF;
       font-weight: 800;
       padding: 12px 14px;
-      border-bottom: 1.5px solid var(--wr-border-dim);
+      border-bottom: 2.5px solid var(--theme-red);
       white-space: nowrap;
       font-family: 'JetBrains Mono', sans-serif;
     }
 
     .diag-table td {
       padding: 11px 14px;
-      border-bottom: 1px solid rgba(56, 189, 248, 0.08);
-      color: var(--wr-text-primary);
+      border-bottom: 1px solid var(--theme-border);
+      color: var(--theme-text-body);
       white-space: nowrap;
       font-family: 'JetBrains Mono', monospace;
     }
 
     .diag-table tr:nth-child(even) {
-      background: rgba(9, 23, 44, 0.4);
+      background: #F8FAFC;
     }
 
     .diag-table tr:hover {
-      background: rgba(56, 189, 248, 0.1);
+      background: #EDF3F9;
     }
 
     .badge-pill-table {
       padding: 3px 10px;
-      border-radius: var(--wr-radius-pill);
+      border-radius: var(--theme-radius-pill);
       font-size: 11.5px;
       font-weight: 700;
       display: inline-block;
     }
 
     .badge-pill-table.green {
-      background: var(--wr-success-bg);
-      color: var(--wr-success);
-      border: 1px solid rgba(16, 185, 129, 0.3);
+      background: var(--theme-success-subtle);
+      color: var(--theme-success);
+      border: 1px solid rgba(5, 150, 105, 0.25);
     }
 
     .badge-pill-table.yellow {
-      background: var(--wr-warning-bg);
-      color: var(--wr-warning);
-      border: 1px solid rgba(251, 191, 36, 0.3);
+      background: var(--theme-warning-subtle);
+      color: var(--theme-warning);
+      border: 1px solid rgba(217, 119, 6, 0.25);
     }
 
     .badge-pill-table.red {
-      background: var(--wr-danger-bg);
-      color: var(--wr-danger);
-      border: 1px solid rgba(244, 63, 94, 0.4);
-      box-shadow: 0 0 10px rgba(244, 63, 94, 0.3);
+      background: var(--theme-red-subtle);
+      color: var(--theme-red);
+      border: 1px solid rgba(232, 56, 61, 0.3);
+      font-weight: 800;
     }
 
-    /* Tab 4 處方箋戰術卡片 (Tactical Action Directives) */
+    /* Tab 4 處方箋戰術卡片 (Prescription Cards) */
     .prescription-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -658,36 +699,35 @@
     }
 
     .action-card {
-      background: rgba(11, 26, 48, 0.85);
-      border-radius: var(--wr-radius-md);
+      background: #FFFFFF;
+      border-radius: var(--theme-radius-md);
       padding: 22px 20px;
-      border: 1px solid var(--wr-border-dim);
+      border: 1px solid var(--theme-border);
       display: flex;
       flex-direction: column;
       height: 100%;
-      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.3);
+      box-shadow: var(--theme-shadow-sm);
     }
 
     .action-card.red {
-      border-left: 5px solid var(--wr-danger);
-      background: linear-gradient(180deg, rgba(244, 63, 94, 0.12) 0%, rgba(11, 26, 48, 0.9) 35%);
-      box-shadow: inset 0 0 14px rgba(244, 63, 94, 0.1);
+      border-left: 5px solid var(--theme-red);
+      background: linear-gradient(180deg, #FFF5F5 0%, #FFFFFF 30%);
     }
 
     .action-card.yellow {
-      border-left: 5px solid var(--wr-warning);
-      background: linear-gradient(180deg, rgba(251, 191, 36, 0.12) 0%, rgba(11, 26, 48, 0.9) 35%);
+      border-left: 5px solid var(--theme-warning);
+      background: linear-gradient(180deg, #FFFBEB 0%, #FFFFFF 30%);
     }
 
     .action-card.green {
-      border-left: 5px solid var(--wr-success);
-      background: linear-gradient(180deg, rgba(16, 185, 129, 0.12) 0%, rgba(11, 26, 48, 0.9) 35%);
+      border-left: 5px solid var(--theme-success);
+      background: linear-gradient(180deg, #ECFDF5 0%, #FFFFFF 30%);
     }
 
     .action-card-title {
       font-size: 16.5px;
       font-weight: 800;
-      color: #FFFFFF;
+      color: var(--theme-navy);
       margin-bottom: 12px;
       display: flex;
       align-items: center;
@@ -696,21 +736,21 @@
 
     .action-card-content {
       font-size: 13.5px;
-      color: var(--wr-text-secondary);
+      color: var(--theme-text-body);
       line-height: 1.65;
       flex-grow: 1;
     }
 
     .action-card-content b {
-      color: #FFFFFF;
+      color: var(--theme-navy);
     }
 
     .download-btn {
       width: 100%;
-      background: linear-gradient(135deg, #0284C7 0%, #0A2C51 100%);
+      background: linear-gradient(135deg, #0A2C51 0%, #15406E 100%);
       color: #FFFFFF;
-      border: 1px solid var(--wr-cyan);
-      border-radius: var(--wr-radius-sm);
+      border: none;
+      border-radius: var(--theme-radius-sm);
       padding: 14px 24px;
       font-size: 15.5px;
       font-weight: 800;
@@ -720,13 +760,13 @@
       align-items: center;
       gap: 10px;
       transition: all 0.2s ease;
-      box-shadow: 0 4px 18px rgba(2, 132, 199, 0.35);
+      box-shadow: 0 4px 14px rgba(10, 44, 81, 0.2);
       letter-spacing: 0.02em;
     }
 
     .download-btn:hover {
-      background: linear-gradient(135deg, #0369A1 0%, #071E38 100%);
-      box-shadow: 0 0 24px rgba(56, 189, 248, 0.5);
+      background: linear-gradient(135deg, #E8383D 0%, #C82328 100%);
+      box-shadow: 0 6px 18px rgba(232, 56, 61, 0.35);
       transform: translateY(-1px);
     }
 
@@ -734,9 +774,9 @@
     .footer {
       text-align: center;
       font-size: 13px;
-      color: var(--wr-text-muted);
+      color: var(--theme-text-muted);
       padding: 30px 0;
-      border-top: 1px solid var(--wr-border-dim);
+      border-top: 1px solid var(--theme-border);
       margin-top: 40px;
       font-family: 'JetBrains Mono', monospace;
     }
@@ -778,7 +818,7 @@
         padding: 16px;
       }
       .header-text h1 {
-        font-size: 19px;
+        font-size: 18px;
       }
       .header-right {
         align-items: flex-start;
@@ -787,22 +827,28 @@
   </style>
 </head>
 <body>
+  <!-- 背景 LOGO 漸層浮水印圖騰 -->
+  <div class="bg-watermark"></div>
+
   <div class="container">
-    <!-- 頂部戰情室主視覺 Header -->
+    <!-- 頂部主視覺 Header -->
     <header class="war-room-header">
       <div class="header-left">
-        <div class="header-status-line">
-          <div class="pulse-beacon"></div>
-          <span class="telemetry-tag">LIVE TELEMETRY · 賽季實時監控連線中</span>
-        </div>
-        <div class="header-text">
-          <h1>⚾ MFEWS 棒球微疲勞預警戰情室</h1>
-          <p>2026 野革盃台灣棒球數據黑客松參賽專案 · Micro-Fatigue Early Warning System</p>
+        <img src="logo.png" alt="MFEWS Logo" class="brand-logo-img" title="2026 野革盃 參賽專案標誌" />
+        <div>
+          <div class="header-status-line">
+            <div class="pulse-beacon"></div>
+            <span class="telemetry-tag">LIVE TELEMETRY · 實時生理力學監控連線</span>
+          </div>
+          <div class="header-text">
+            <h1>MFEWS 賽季微疲勞先行指標預警系統</h1>
+            <p>2026 野革盃台灣棒球數據黑客松參賽專案 · Micro-Fatigue Early Warning System</p>
+          </div>
         </div>
       </div>
       <div class="header-right">
         <div class="clock-badge" id="war-room-clock">TACTICAL CLOCK: 2026-10-07 09:30:00</div>
-        <div class="copyright-badge">© NTUT IAE. All rights reserved.</div>
+        <div class="copyright-badge">© 2026 NTUT IAE. All rights reserved.</div>
       </div>
     </header>
 
@@ -881,14 +927,14 @@
           <div class="slider-item">
             <div class="slider-label">
               <span>🔴 高風險警戒閾值 (MFI)</span>
-              <span id="val-thresh-red" style="color: var(--wr-danger);">70.0</span>
+              <span id="val-thresh-red" style="color: var(--theme-red);">70.0</span>
             </div>
             <input type="range" id="slider-thresh-red" min="55" max="85" step="0.5" value="70.0" oninput="updateThresholds()" />
           </div>
           <div class="slider-item">
             <div class="slider-label">
               <span>🟡 觀察期注意閾值 (MFI)</span>
-              <span id="val-thresh-yellow" style="color: var(--wr-warning);">50.0</span>
+              <span id="val-thresh-yellow" style="color: var(--theme-warning);">50.0</span>
             </div>
             <input type="range" id="slider-thresh-yellow" min="35" max="65" step="0.5" value="50.0" oninput="updateThresholds()" />
           </div>
@@ -934,9 +980,9 @@
           <div id="chart-radar" style="width: 100%; height: 390px;"></div>
           <div id="chart-importance" style="width: 100%; height: 390px;"></div>
         </div>
-        <div style="margin-top: 20px; background: rgba(9, 23, 44, 0.7); border-radius: var(--wr-radius-md); padding: 18px; border: 1px solid var(--wr-border-dim);">
-          <div style="font-weight: 800; color: var(--wr-cyan); margin-bottom: 8px; font-size: 15px;">💡 戰情室運科力學因果鏈診斷報告</div>
-          <p style="font-size: 13.5px; color: var(--wr-text-secondary); line-height: 1.65;" id="biomech-insight-text">
+        <div style="margin-top: 20px; background: var(--theme-canvas); border-radius: var(--theme-radius-md); padding: 18px; border: 1px solid var(--theme-border);">
+          <div style="font-weight: 800; color: var(--theme-navy); margin-bottom: 8px; font-size: 15px;">💡 運科力學因果鏈診斷報告</div>
+          <p style="font-size: 13.5px; color: var(--theme-text-body); line-height: 1.65;" id="biomech-insight-text">
             當前選手微疲勞主要來源於<b>軀幹前傾角損耗</b>與<b>下肢垂直地面反作用力衰減</b>。數據顯示動能鏈傳遞效率下降，導致上肢肩肘代償負荷升高 14.2%，若未即時調節出賽量，預計將在 10-14 天後引發成績顯著下滑或急性拉傷。
           </p>
         </div>
@@ -957,14 +1003,14 @@
           <div class="slider-item">
             <div class="slider-label">
               <span>💤 增加輪休天數 (Rest Days)</span>
-              <span id="val-rest-days" style="color: var(--wr-cyan);">2 天</span>
+              <span id="val-rest-days" style="color: var(--theme-navy);">2 天</span>
             </div>
             <input type="range" id="slider-rest-days" min="0" max="5" step="1" value="2" oninput="updateSimulation()" />
           </div>
           <div class="slider-item">
             <div class="slider-label">
               <span>📉 出賽用球數 / 擊球打席調整 (Workload)</span>
-              <span id="val-workload-adj" style="color: var(--wr-cyan);">-20%</span>
+              <span id="val-workload-adj" style="color: var(--theme-navy);">-20%</span>
             </div>
             <input type="range" id="slider-workload-adj" min="-50" max="50" step="5" value="-20" oninput="updateSimulation()" />
           </div>
@@ -975,17 +1021,17 @@
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-top: 22px;">
           <div class="kpi-card">
             <div class="kpi-title">📉 預估 MFI 改善幅度</div>
-            <div class="kpi-value" style="color: var(--wr-success);" id="sim-kpi-mfi">-14.2 pts</div>
+            <div class="kpi-value" style="color: var(--theme-success);" id="sim-kpi-mfi">-14.2 pts</div>
             <div class="kpi-sub">成功脫離高風險警戒區</div>
           </div>
           <div class="kpi-card">
             <div class="kpi-title">🛡️ 傷害風險降低機率</div>
-            <div class="kpi-value" style="color: var(--wr-cyan);" id="sim-kpi-injury">-42.5%</div>
+            <div class="kpi-value" style="color: var(--theme-navy);" id="sim-kpi-injury">-42.5%</div>
             <div class="kpi-sub">力學代償效應顯著減緩</div>
           </div>
           <div class="kpi-card">
             <div class="kpi-title">⏳ 預期疲勞延緩場次</div>
-            <div class="kpi-value" style="color: var(--wr-cyan);" id="sim-kpi-delay">+6.5 場</div>
+            <div class="kpi-value" style="color: var(--theme-navy);" id="sim-kpi-delay">+6.5 場</div>
             <div class="kpi-sub">維持競技高峰至賽事尾聲</div>
           </div>
         </div>
@@ -1030,7 +1076,7 @@
     </footer>
   </div>
 
-  <!-- 戰情室應用程式互動邏輯 -->
+  <!-- 應用程式互動邏輯 -->
   <script>
     // 全域狀態
     let currentTeam = "味全龍";
@@ -1217,7 +1263,7 @@
       else if (currentTab === 4) renderTab4();
     }
 
-    // TAB 1 渲染 (戰情室深色雙軸時序圖表)
+    // TAB 1 渲染 (RB 淺色雙軸時序圖表)
     function renderTab1() {
       const pData = getPlayer(currentPlayer);
       if (!pData) return;
@@ -1234,8 +1280,8 @@
         name: '微疲勞指數 (MFI)',
         type: 'scatter',
         mode: 'lines+markers',
-        line: { color: '#38BDF8', width: 3.2, shape: 'spline' },
-        marker: { size: 5, color: '#38BDF8' },
+        line: { color: '#0A2C51', width: 3.2, shape: 'spline' },
+        marker: { size: 5, color: '#0A2C51' },
         yaxis: 'y1'
       };
 
@@ -1245,7 +1291,7 @@
         name: '高風險警戒線',
         type: 'scatter',
         mode: 'lines',
-        line: { color: '#F43F5E', width: 2, dash: 'dash' },
+        line: { color: '#E8383D', width: 2, dash: 'dash' },
         yaxis: 'y1'
       };
 
@@ -1255,7 +1301,7 @@
         name: '觀察期注意線',
         type: 'scatter',
         mode: 'lines',
-        line: { color: '#FBBF24', width: 2, dash: 'dot' },
+        line: { color: '#D97706', width: 2, dash: 'dot' },
         yaxis: 'y1'
       };
 
@@ -1265,8 +1311,8 @@
         name: isPitcher ? '賽季累積 ERA' : '賽季累積 AVG',
         type: 'scatter',
         mode: 'lines+markers',
-        line: { color: '#EC4899', width: 2.2 },
-        marker: { size: 5, color: '#EC4899' },
+        line: { color: '#E8383D', width: 2.2 },
+        marker: { size: 5, color: '#E8383D' },
         yaxis: 'y2'
       };
 
@@ -1275,24 +1321,24 @@
         margin: { l: 65, r: 40, t: 30, b: 50 },
         height: 530,
         showlegend: true,
-        legend: { orientation: 'h', y: 1.15, x: 0.05, font: { color: '#94A3B8' } },
+        legend: { orientation: 'h', y: 1.15, x: 0.05, font: { color: '#475569' } },
         yaxis: {
-          title: { text: '微疲勞指數 (MFI)', font: { color: '#38BDF8' } },
+          title: { text: '微疲勞指數 (MFI)', font: { color: '#0A2C51', size: 13, weight: 700 } },
           range: [10, 100],
-          gridcolor: 'rgba(56, 189, 248, 0.08)',
-          tickfont: { color: '#94A3B8', family: 'JetBrains Mono' }
+          gridcolor: '#E2E8F0',
+          tickfont: { color: '#64748B', family: 'JetBrains Mono' }
         },
         yaxis2: {
-          title: { text: isPitcher ? '賽季 ERA' : '賽季打擊率', font: { color: '#EC4899' } },
-          gridcolor: 'rgba(56, 189, 248, 0.08)',
-          tickfont: { color: '#94A3B8', family: 'JetBrains Mono' }
+          title: { text: isPitcher ? '賽季 ERA' : '賽季打擊率', font: { color: '#E8383D', size: 13, weight: 700 } },
+          gridcolor: '#E2E8F0',
+          tickfont: { color: '#64748B', family: 'JetBrains Mono' }
         },
         xaxis2: {
-          title: { text: '賽季比賽場次 (Game Index)', font: { color: '#94A3B8' } },
-          gridcolor: 'rgba(56, 189, 248, 0.08)',
-          tickfont: { color: '#94A3B8', family: 'JetBrains Mono' }
+          title: { text: '賽季比賽場次 (Game Index)', font: { color: '#64748B', size: 12 } },
+          gridcolor: '#E2E8F0',
+          tickfont: { color: '#64748B', family: 'JetBrains Mono' }
         },
-        plot_bgcolor: 'rgba(9, 23, 44, 0.7)',
+        plot_bgcolor: '#FFFFFF',
         paper_bgcolor: 'rgba(0,0,0,0)'
       };
 
@@ -1332,12 +1378,12 @@
         row.innerHTML = `
           <td><b>第 ${games[i]} 場</b></td>
           <td>${pData.dates[i]}</td>
-          <td><b style="color: ${valMfi >= threshRed ? '#F43F5E' : (valMfi >= threshYellow ? '#FBBF24' : '#38BDF8')}">${valMfi.toFixed(1)}</b></td>
+          <td><b style="color: ${valMfi >= threshRed ? '#E8383D' : (valMfi >= threshYellow ? '#D97706' : '#0A2C51')}">${valMfi.toFixed(1)}</b></td>
           <td><span class="badge-pill-table ${badgeCls}">${badgeText}</span></td>
           <td>${m1}</td>
           <td>${m2}</td>
           <td>${m3}</td>
-          <td><b style="color: #F8FAFC">${pVal}</b></td>
+          <td><b style="color: #0A2C51">${pVal}</b></td>
         `;
         tbody.appendChild(row);
       }
@@ -1368,8 +1414,8 @@
           theta: [...categories, categories[0]],
           fill: 'toself',
           name: '常態基準水平',
-          line: { color: '#64748B', width: 2 },
-          fillcolor: 'rgba(100, 116, 139, 0.2)'
+          line: { color: '#94A3B8', width: 2 },
+          fillcolor: 'rgba(148, 163, 184, 0.15)'
         },
         {
           type: 'scatterpolar',
@@ -1377,21 +1423,21 @@
           theta: [...categories, categories[0]],
           fill: 'toself',
           name: '當前實時狀態',
-          line: { color: lastMfi >= threshRed ? '#F43F5E' : '#38BDF8', width: 2.8 },
-          fillcolor: lastMfi >= threshRed ? 'rgba(244, 63, 94, 0.3)' : 'rgba(56, 189, 248, 0.3)'
+          line: { color: lastMfi >= threshRed ? '#E8383D' : '#0A2C51', width: 2.8 },
+          fillcolor: lastMfi >= threshRed ? 'rgba(232, 56, 61, 0.2)' : 'rgba(10, 44, 81, 0.18)'
         }
       ];
 
       const radarLayout = {
         polar: {
-          radialaxis: { visible: true, range: [0, 100], tickfont: { color: '#94A3B8' }, gridcolor: 'rgba(56, 189, 248, 0.15)' },
-          angularaxis: { tickfont: { color: '#F8FAFC', size: 12 }, linecolor: 'rgba(56, 189, 248, 0.2)' },
-          bgcolor: 'rgba(9, 23, 44, 0.5)'
+          radialaxis: { visible: true, range: [0, 100], tickfont: { color: '#64748B' }, gridcolor: '#E2E8F0' },
+          angularaxis: { tickfont: { color: '#0A2C51', size: 12, weight: 700 }, linecolor: '#CBD5E1' },
+          bgcolor: '#F8FAFC'
         },
         margin: { l: 40, r: 40, t: 30, b: 30 },
         height: 390,
         showlegend: true,
-        legend: { orientation: 'h', y: -0.1, font: { color: '#94A3B8' } },
+        legend: { orientation: 'h', y: -0.1, font: { color: '#475569' } },
         paper_bgcolor: 'rgba(0,0,0,0)'
       };
 
@@ -1413,17 +1459,17 @@
         y: features,
         orientation: 'h',
         marker: {
-          color: contributions.map(v => v > 30 ? '#F43F5E' : (v > 20 ? '#FBBF24' : '#38BDF8'))
+          color: contributions.map(v => v > 30 ? '#E8383D' : (v > 20 ? '#D97706' : '#0A2C51'))
         }
       }];
 
       const barLayout = {
-        title: { text: '先行力學特徵對疲勞貢獻權重 (%)', font: { size: 14, color: '#F8FAFC' } },
+        title: { text: '先行力學特徵對疲勞貢獻權重 (%)', font: { size: 14, color: '#0A2C51', weight: 800 } },
         margin: { l: 140, r: 30, t: 40, b: 30 },
         height: 390,
-        xaxis: { title: { text: '貢獻權重百分比 (%)', font: { color: '#94A3B8' } }, range: [0, 60], gridcolor: 'rgba(56, 189, 248, 0.1)', tickfont: { color: '#94A3B8' } },
-        yaxis: { tickfont: { color: '#F8FAFC', size: 12 } },
-        plot_bgcolor: 'rgba(9, 23, 44, 0.5)',
+        xaxis: { title: { text: '貢獻權重百分比 (%)', font: { color: '#64748B' } }, range: [0, 60], gridcolor: '#E2E8F0', tickfont: { color: '#64748B' } },
+        yaxis: { tickfont: { color: '#0A2C51', size: 12, weight: 600 } },
+        plot_bgcolor: '#FFFFFF',
         paper_bgcolor: 'rgba(0,0,0,0)'
       };
 
@@ -1463,7 +1509,7 @@
         name: '原始實測走勢 (無干預)',
         type: 'scatter',
         mode: 'lines',
-        line: { color: '#F43F5E', width: 2.5, dash: 'dot' }
+        line: { color: '#E8383D', width: 2.5, dash: 'dot' }
       };
 
       const traceSim = {
@@ -1472,19 +1518,19 @@
         name: `反事實模擬走勢 (休賽 ${restDays} 天, 負荷 ${workloadAdj}%)`,
         type: 'scatter',
         mode: 'lines+markers',
-        line: { color: '#10B981', width: 3.2 },
-        marker: { size: 5, color: '#10B981' }
+        line: { color: '#059669', width: 3.2 },
+        marker: { size: 5, color: '#059669' }
       };
 
       const layout = {
-        title: { text: `【${currentPlayer}】負荷管理反事實模擬對比`, font: { size: 15, color: '#F8FAFC' } },
+        title: { text: `【${currentPlayer}】負荷管理反事實模擬對比`, font: { size: 15, color: '#0A2C51', weight: 800 } },
         margin: { l: 65, r: 40, t: 40, b: 50 },
         height: 450,
         showlegend: true,
-        legend: { orientation: 'h', y: 1.12, font: { color: '#94A3B8' } },
-        yaxis: { title: { text: '微疲勞指數 (MFI)', font: { color: '#38BDF8' } }, range: [10, 100], gridcolor: 'rgba(56, 189, 248, 0.08)', tickfont: { color: '#94A3B8' } },
-        xaxis: { title: { text: '賽季比賽場次 (Game Index)', font: { color: '#94A3B8' } }, gridcolor: 'rgba(56, 189, 248, 0.08)', tickfont: { color: '#94A3B8' } },
-        plot_bgcolor: 'rgba(9, 23, 44, 0.7)',
+        legend: { orientation: 'h', y: 1.12, font: { color: '#475569' } },
+        yaxis: { title: { text: '微疲勞指數 (MFI)', font: { color: '#0A2C51', size: 13, weight: 700 } }, range: [10, 100], gridcolor: '#E2E8F0', tickfont: { color: '#64748B' } },
+        xaxis: { title: { text: '賽季比賽場次 (Game Index)', font: { color: '#64748B' } }, gridcolor: '#E2E8F0', tickfont: { color: '#64748B' } },
+        plot_bgcolor: '#FFFFFF',
         paper_bgcolor: 'rgba(0,0,0,0)'
       };
 
@@ -1550,25 +1596,36 @@
            • <b>比賽後段提早替換</b>：於大比分領先或落後時於第 7 局提早退場休息。`;
 
         t2 = isPitcher ?
-          `• <b>牛棚練習減量 20%</b>：專注於放球點一致性訓練，避免高疲勞下力學動作變形。<br>
-           • <b>調整中強度重訓排程</b>：力量訓練減重 15%，加強胸椎旋轉與骨盆活動度。` :
-          `• <b>控制賽前揮棒量</b>：打擊練習著重球心甜蜜點擊球，避免高負擔自由擊球練習。<br>
-           • <b>加強髖關節活動度</b>：賽前強化髖關節深層旋轉肌與下背伸展。`;
+          `• <b>練投總量管制</b>：每週牛棚練投由 2 次縮減為 1 次，球數上限 35 球。<br>
+           • <b>動態恢復導向重訓</b>：減少神經系統高負荷訓練，增加胸椎旋轉活動度。<br>
+           • <b>肩袖肌群微調</b>：專注於肩胛後側肌群之等速向心收縮訓練。` :
+          `• <b>控制揮棒次數</b>：賽前特打揮棒次數限制於 50 次以內。<br>
+           • <b>加強腿後肌群伸展</b>：賽前進行動態熱身，賽後立即冰敷放鬆。<br>
+           • <b>下肢滾筒筋膜放鬆</b>：每日執行 15 分鐘下肢筋膜放鬆。`;
 
-        t3 = `• <b>每週超音波例行檢查</b>：追蹤旋轉肌腱與手肘尺側副韌帶是否有微細積液現象。<br>
-              • <b>加強水療冷熱交替浸泡</b>：賽後進行 15 分鐘冷熱交替水療以促進乳酸排除。`;
+        t3 = `• <b>指尖轉速效率即時追蹤</b>：賽後檢視 Rapsodo/Trackman 旋轉效率數據是否回跌逾 3%。<br>
+              • <b>疲勞問卷主觀量表 (RPE)</b>：賽後即刻填寫自覺用力程度量表。<br>
+              • <b>充足睡眠監測</b>：建議維持每晚 8.5 小時以上深層睡眠。`;
 
       } else {
         card1.className = 'action-card green';
         card2.className = 'action-card green';
         card3.className = 'action-card green';
 
-        t1 = `• <b>常態性先發輪值出賽</b>：生理力學特徵維持高水準穩定度，可正常依照常規先發調度。<br>
-              • <b>持續定期追蹤</b>：每場賽後維持例行性微疲勞特徵數據採集。`;
-        t2 = `• <b>維持常態訓練強度</b>：依據週期化訓練課表進行肌力與爆發力維持。<br>
-              • <b>專注技術動作精準度</b>：加強動能鏈傳遞效率與投打技術細節。`;
-        t3 = `• <b>常規保養與伸展流程</b>：賽後維持常態性關節冰熱敷交替與軟組織滾筒放鬆。<br>
-              • <b>睡眠品質良好</b>：心率變異度與肌肉張力指數維持於標準綠燈健康區間。`;
+        t1 = isPitcher ?
+          `• <b>維持正常輪值出賽</b>：生理機機能處於最佳巔峰，可依常規先發節奏出賽。<br>
+           • <b>常態用球數監測</b>：單場用球數上限維持常規 95-100 球標準。` :
+          `• <b>全勤先發出賽</b>：競技狀態處於高檔，建議維持先發核心打序安排。<br>
+           • <b>正常戰術執行</b>：各項戰術執行不受限制。`;
+
+        t2 = isPitcher ?
+          `• <b>常態週期化課表</b>：維持標準賽季中爆發力維持課表。<br>
+           • <b>肌力穩定維持</b>：每週執行 2 次中高強度全身肌力維護訓練。` :
+          `• <b>正常打擊練習量</b>：按常規進度執行完整賽前打擊練習。<br>
+           • <b>專項速度維持</b>：維持每週 1 次反應速度與衝刺敏捷訓練。`;
+
+        t3 = `• <b>常規運科追蹤</b>：每週進行 1 次關節活動度與肌力對稱性篩檢。<br>
+              • <b>健康指標維持</b>：持續記錄每日心率變異度以建立個人化長期基準線。`;
       }
 
       document.getElementById('presc-text-1').innerHTML = t1;
