@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>MFEWS | 賽季微疲勞先行指標預警系統 (2026 野革盃)</title>
   
   <!-- 網頁 Favicon 與 Apple Touch Icon -->
@@ -87,6 +87,14 @@
       padding: 0;
     }
 
+    html, body {
+      touch-action: pan-x pan-y;
+      -webkit-text-size-adjust: 100%;
+      -webkit-tap-highlight-color: transparent;
+      width: 100%;
+      overflow-x: hidden;
+    }
+
     body {
       background-color: var(--theme-canvas);
       background-image: 
@@ -101,6 +109,12 @@
       padding-bottom: 70px;
       min-height: 100vh;
       position: relative;
+    }
+
+    button, .player-card-btn, .roster-btn, .tab-btn {
+      touch-action: manipulation;
+      -webkit-touch-callout: none;
+      user-select: none;
     }
 
     /* 巧妙融入背景的大型 LOGO 水印 */
@@ -785,6 +799,7 @@
     @media (max-width: 1024px) and (min-width: 769px) {
       .player-grid {
         grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
       }
       .kpi-grid {
         grid-template-columns: repeat(2, 1fr);
@@ -792,27 +807,59 @@
       .prescription-grid {
         grid-template-columns: 1fr;
       }
+      .tab-btn {
+        font-size: 13.5px;
+        padding: 12px 6px;
+      }
     }
 
     @media (max-width: 768px) {
+      .container {
+        padding: 0 12px;
+      }
       .player-grid {
         grid-template-columns: repeat(2, 1fr);
         gap: 8px;
       }
+      .player-card-btn {
+        min-height: 94px;
+        padding: 10px 4px;
+      }
+      .player-card-btn .p-name {
+        font-size: 14px;
+      }
       .kpi-grid {
         grid-template-columns: repeat(2, 1fr);
         gap: 8px;
+      }
+      .kpi-card {
+        padding: 14px 12px;
+      }
+      .kpi-value {
+        font-size: 22px;
       }
       .prescription-grid {
         grid-template-columns: 1fr;
         gap: 12px;
       }
       .tab-bar {
-        gap: 4px;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 6px;
+        border-bottom: none;
+        margin: 16px 0 20px 0;
       }
       .tab-btn {
-        font-size: 12px;
-        padding: 10px 4px;
+        width: 100%;
+        font-size: 13px;
+        padding: 11px 6px;
+        border-radius: var(--theme-radius-sm);
+        white-space: normal;
+        line-height: 1.35;
+      }
+      .tab-btn.active {
+        border-bottom: none;
+        border-left: 4px solid var(--theme-red);
       }
       .war-room-header {
         padding: 16px;
@@ -1273,7 +1320,7 @@
       const mfi = pData.mfi;
       const perf = pData.perf;
 
-      // 建立 Plotly 雙子圖
+      // 建立 Plotly 雙子圖 (修正座標軸對應，確保 MFI 與警戒線完美顯示)
       const traceMfi = {
         x: games,
         y: mfi,
@@ -1282,7 +1329,8 @@
         mode: 'lines+markers',
         line: { color: '#0A2C51', width: 3.2, shape: 'spline' },
         marker: { size: 5, color: '#0A2C51' },
-        yaxis: 'y1'
+        xaxis: 'x',
+        yaxis: 'y'
       };
 
       const traceThreshRed = {
@@ -1291,8 +1339,9 @@
         name: '高風險警戒線',
         type: 'scatter',
         mode: 'lines',
-        line: { color: '#E8383D', width: 2, dash: 'dash' },
-        yaxis: 'y1'
+        line: { color: '#E8383D', width: 2.2, dash: 'dash' },
+        xaxis: 'x',
+        yaxis: 'y'
       };
 
       const traceThreshYellow = {
@@ -1301,8 +1350,9 @@
         name: '觀察期注意線',
         type: 'scatter',
         mode: 'lines',
-        line: { color: '#D97706', width: 2, dash: 'dot' },
-        yaxis: 'y1'
+        line: { color: '#D97706', width: 2.2, dash: 'dot' },
+        xaxis: 'x',
+        yaxis: 'y'
       };
 
       const tracePerf = {
@@ -1313,6 +1363,7 @@
         mode: 'lines+markers',
         line: { color: '#E8383D', width: 2.2 },
         marker: { size: 5, color: '#E8383D' },
+        xaxis: 'x2',
         yaxis: 'y2'
       };
 
@@ -1322,14 +1373,14 @@
         height: 530,
         showlegend: true,
         legend: { orientation: 'h', y: 1.15, x: 0.05, font: { color: '#475569' } },
-        yaxis: {
-          title: { text: '微疲勞指數 (MFI)', font: { color: '#0A2C51', size: 13, weight: 700 } },
-          range: [10, 100],
+        xaxis: {
+          showgrid: true,
           gridcolor: '#E2E8F0',
           tickfont: { color: '#64748B', family: 'JetBrains Mono' }
         },
-        yaxis2: {
-          title: { text: isPitcher ? '賽季 ERA' : '賽季打擊率', font: { color: '#E8383D', size: 13, weight: 700 } },
+        yaxis: {
+          title: { text: '微疲勞指數 (MFI)', font: { color: '#0A2C51', size: 13, weight: 700 } },
+          range: [10, 100],
           gridcolor: '#E2E8F0',
           tickfont: { color: '#64748B', family: 'JetBrains Mono' }
         },
@@ -1338,11 +1389,16 @@
           gridcolor: '#E2E8F0',
           tickfont: { color: '#64748B', family: 'JetBrains Mono' }
         },
+        yaxis2: {
+          title: { text: isPitcher ? '賽季 ERA' : '賽季打擊率', font: { color: '#E8383D', size: 13, weight: 700 } },
+          gridcolor: '#E2E8F0',
+          tickfont: { color: '#64748B', family: 'JetBrains Mono' }
+        },
         plot_bgcolor: '#FFFFFF',
         paper_bgcolor: 'rgba(0,0,0,0)'
       };
 
-      Plotly.react('chart-time-series', [traceMfi, traceThreshRed, traceThreshYellow, tracePerf], layout, { responsive: true, displayModeBar: false });
+      Plotly.react('chart-time-series', [traceMfi, traceThreshRed, traceThreshYellow, tracePerf], layout, { responsive: true, displayModeBar: false, scrollZoom: false });
 
       // 渲染近 10 場明細表格
       document.getElementById('th-metric-1').innerText = isPitcher ? '釋球點離散 (cm)' : '壞球追打 (O-Swing%)';
@@ -1441,7 +1497,7 @@
         paper_bgcolor: 'rgba(0,0,0,0)'
       };
 
-      Plotly.react('chart-radar', radarData, radarLayout, { responsive: true, displayModeBar: false });
+      Plotly.react('chart-radar', radarData, radarLayout, { responsive: true, displayModeBar: false, scrollZoom: false });
 
       // 特徵貢獻長條圖
       const features = ['下肢地面反力衰減', '心率變異度異常', '肩肘角速度損耗', '出手點離散擴大', '轉速衰減'];
@@ -1473,7 +1529,7 @@
         paper_bgcolor: 'rgba(0,0,0,0)'
       };
 
-      Plotly.react('chart-importance', barData, barLayout, { responsive: true, displayModeBar: false });
+      Plotly.react('chart-importance', barData, barLayout, { responsive: true, displayModeBar: false, scrollZoom: false });
     }
 
     // TAB 3 渲染 (反事實模擬)
@@ -1534,7 +1590,7 @@
         paper_bgcolor: 'rgba(0,0,0,0)'
       };
 
-      Plotly.react('chart-simulation', [traceOrig, traceSim], layout, { responsive: true, displayModeBar: false });
+      Plotly.react('chart-simulation', [traceOrig, traceSim], layout, { responsive: true, displayModeBar: false, scrollZoom: false });
 
       const finalReduction = Math.max(0, origMfi[origMfi.length - 1] - simMfi[simMfi.length - 1]);
       document.getElementById('sim-kpi-mfi').innerText = `-${finalReduction.toFixed(1)} pts`;
