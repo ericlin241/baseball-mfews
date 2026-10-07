@@ -925,19 +925,19 @@
     <!-- 4 大核心 KPI 統計儀表板 (Command Console KPI Blocks) -->
     <section class="kpi-grid">
       <div class="kpi-card">
-        <div class="kpi-title">📊 聯賽 MFI 均值</div>
+        <div class="kpi-title">📊 陣容 MFI 均值</div>
         <div class="kpi-value" id="kpi-league-mfi">52.4</div>
         <div class="kpi-sub">常態生理監測基準區間</div>
       </div>
       <div class="kpi-card warning-card">
-        <div class="kpi-title">⚠️ 異常先行警示</div>
+        <div class="kpi-title">⚠️ 異常先行警示 (觀察期)</div>
         <div class="kpi-value" id="kpi-warning-count">8 位</div>
         <div class="kpi-sub">提前 10-14 天力學特徵衰減</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-title">👥 全隊監測球員</div>
+        <div class="kpi-title">👥 當前陣容球員</div>
         <div class="kpi-value" id="kpi-monitored-count">26 位</div>
-        <div class="kpi-sub">一軍實戰運動學追蹤名單</div>
+        <div class="kpi-sub" id="kpi-monitored-sub">一軍實戰運動學追蹤名單</div>
       </div>
       <div class="kpi-card alert-card">
         <div class="kpi-title">🚨 高風險警報</div>
@@ -1292,8 +1292,11 @@
         if (pData) {
           const lastMfi = pData.mfi[pData.mfi.length - 1];
           totalMfi += lastMfi;
-          if (lastMfi >= threshYellow) warningCount++;
-          if (lastMfi >= threshRed) highRiskCount++;
+          if (lastMfi >= threshRed) {
+            highRiskCount++;
+          } else if (lastMfi >= threshYellow) {
+            warningCount++;
+          }
         }
       });
 
@@ -1302,6 +1305,8 @@
       document.getElementById('kpi-warning-count').innerText = `${warningCount} 位`;
       document.getElementById('kpi-monitored-count').innerText = `${players.length} 位`;
       document.getElementById('kpi-high-risk-count').innerText = `${highRiskCount} 位`;
+      const subEl = document.getElementById('kpi-monitored-sub');
+      if (subEl) subEl.innerText = `${currentRoster}實戰運動學追蹤名單`;
     }
 
     // 滑桿更新閾值
